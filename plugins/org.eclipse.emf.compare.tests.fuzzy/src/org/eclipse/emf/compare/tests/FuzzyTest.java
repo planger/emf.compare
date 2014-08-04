@@ -11,9 +11,7 @@
 package org.eclipse.emf.compare.tests;
 
 import static org.junit.Assert.assertSame;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 import java.util.List;
@@ -25,6 +23,7 @@ import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceState;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.ReferenceChange;
+import org.eclipse.emf.compare.diff.IDiffEngine;
 import org.eclipse.emf.compare.match.eobject.URIDistance;
 import org.eclipse.emf.compare.merge.BatchMerger;
 import org.eclipse.emf.compare.merge.IBatchMerger;
@@ -44,6 +43,9 @@ import org.eclipse.emf.emfstore.modelmutator.api.ModelMutatorConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 /**
  * A brute force test using fuzzy testing.
@@ -80,19 +82,29 @@ public class FuzzyTest {
 	 */
 	@Test
 	public void copyAllRightToLeft() {
+		copy(true);
+	}
+	
+	public void copy(boolean fromRightToLeft) {
 		Assert.assertNotNull(root);
 		removeAllDuplicateCrossReferencesFrom(root);
 		EObject backup = EcoreUtil.copy(root);
+		assertTrue(EcoreUtil.equals(root, backup));
 
 		util.mutate(createConfig());
-		EObject mutated = EcoreUtil.copy(root);
 		removeAllDuplicateCrossReferencesFrom(root);
 
-		Comparison result = EMFCompare.builder().build().compare(
-				new DefaultComparisonScope(root, backup, null));
+		Comparison result = EMFCompare.builder()
+				.build()
+				.compare(
+						new DefaultComparisonScope(root, backup, null));
 		int nbDiffs = result.getDifferences().size();
 		final IBatchMerger merger = new BatchMerger(mergerRegistry);
-		merger.copyAllRightToLeft(result.getDifferences(), new BasicMonitor());
+		if (fromRightToLeft) {
+			merger.copyAllRightToLeft(result.getDifferences(), new BasicMonitor());			
+		} else {
+			merger.copyAllLeftToRight(result.getDifferences(), new BasicMonitor());
+		}
 
 		for (Diff delta : result.getDifferences()) {
 			assertSame(delta.getState(), DifferenceState.MERGED);
@@ -107,54 +119,46 @@ public class FuzzyTest {
 			if (diff.getMatch().getRight() != null) {
 				urisToDebug.add(new URIDistance().apply(diff.getMatch().getRight()).toString());
 			}
-
 		}
 
 		if (urisToDebug.size() > 0) {
 			/*
 			 * restart
 			 */
-			root = EcoreUtil.copy(mutated);
-			result = EMFCompare.builder().build().compare(new DefaultComparisonScope(root, backup, null));
-			for (Diff diff : result.getDifferences()) {
+			for (Diff diff : valid.getDifferences()) {
 				if (diff.getMatch().getRight() != null) {
 					String uri = new URIDistance().apply(diff.getMatch().getRight()).toString();
 					if (urisToDebug.contains(uri)) {
 						final IMerger diffMerger = mergerRegistry.getHighestRankingMerger(diff);
-						diffMerger.copyRightToLeft(diff, new BasicMonitor());
+						if (fromRightToLeft) {
+							diffMerger.copyRightToLeft(diff, new BasicMonitor());
+						} else {
+							diffMerger.copyLeftToRight(diff, new BasicMonitor());
+						}
 					}
 				}
 			}
 		}
+		
+		
+		IDiffEngine diffEngine = new OrderIgnoringDiffEngine();
+		valid = EMFCompare.builder()
+				.setDiffEngine(diffEngine)
+				.build()
+				.compare(
+						new DefaultComparisonScope(root, backup, null));
+		 differences = valid.getDifferences();
 
 		Assert.assertEquals("We still have differences after merging all of them (had " + nbDiffs
 				+ " to merge in the beginning)", 0, differences.size());
-
 	}
-
+	
 	/**
 	 * Test to check if the {@link FuzzyRunner} is working.
 	 */
 	@Test
 	public void copyAllLeftToRight() {
-		Assert.assertNotNull(root);
-		removeAllDuplicateCrossReferencesFrom(root);
-		EObject backup = EcoreUtil.copy(root);
-
-		util.mutate(createConfig());
-		removeAllDuplicateCrossReferencesFrom(root);
-
-		Comparison result = EMFCompare.builder().build().compare(
-				new DefaultComparisonScope(root, backup, null));
-		int nbDiffs = result.getDifferences().size();
-		final IBatchMerger merger = new BatchMerger(mergerRegistry);
-		merger.copyAllLeftToRight(result.getDifferences(), new BasicMonitor());
-
-		Comparison valid = EMFCompare.builder().build().compare(
-				new DefaultComparisonScope(root, backup, null));
-		List<Diff> differences = valid.getDifferences();
-		Assert.assertEquals("We still have differences after merging all of them (had " + nbDiffs
-				+ " to merge in the beginning)", 0, differences.size());
+		copy(false);
 	}
 
 	private ModelMutatorConfiguration createConfig() {

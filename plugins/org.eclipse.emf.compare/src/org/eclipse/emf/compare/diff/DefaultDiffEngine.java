@@ -749,7 +749,7 @@ public class DefaultDiffEngine implements IDiffEngine {
 	 * @return true if the given candidate is a FeatureMap change of type DifferenceKind.CHANGE or
 	 *         DifferenceKind.MOVE, false otherwise.
 	 */
-	private boolean isFeatureMapChangeOrMove(final Comparison comparison, final EStructuralFeature feature,
+	protected boolean isFeatureMapChangeOrMove(final Comparison comparison, final EStructuralFeature feature,
 			final Object diffCandidate, final List<Object> values, final DifferenceSource source) {
 		return FeatureMapUtil.isFeatureMap(feature)
 				&& (isFeatureMapEntryKeyChange(comparison.getEqualityHelper(),
@@ -769,8 +769,8 @@ public class DefaultDiffEngine implements IDiffEngine {
 	 * @return true if the entry has its value equivalent in the list of entries, with a different key, false
 	 *         otherwise.
 	 */
-	private boolean isFeatureMapEntryKeyChange(final IEqualityHelper equality, final FeatureMap.Entry entry,
-			final List<Object> entries) {
+	protected boolean isFeatureMapEntryKeyChange(final IEqualityHelper equality,
+			final FeatureMap.Entry entry, final List<Object> entries) {
 		final Object entryValue = entry.getValue();
 		final EStructuralFeature entryKey = entry.getEStructuralFeature();
 		if (entryKey instanceof EReference && ((EReference)entryKey).isContainment()) {
@@ -797,7 +797,7 @@ public class DefaultDiffEngine implements IDiffEngine {
 	 *            The given DifferenceSource of the entry.
 	 * @return true if the entry has its equivalent in the opposite side, false otherwise.
 	 */
-	private boolean isFeatureMapEntryMove(final Comparison comparison, FeatureMap.Entry entry,
+	protected boolean isFeatureMapEntryMove(final Comparison comparison, FeatureMap.Entry entry,
 			DifferenceSource side) {
 		final boolean move;
 		final Object entryValue = entry.getValue();
