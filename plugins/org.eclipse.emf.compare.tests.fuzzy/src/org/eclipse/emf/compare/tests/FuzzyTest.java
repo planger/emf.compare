@@ -10,6 +10,7 @@
  */
 package org.eclipse.emf.compare.tests;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 import com.google.common.collect.Iterables;
@@ -19,7 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.emf.common.notify.Notifier;
 import org.eclipse.emf.common.util.BasicMonitor;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceState;
@@ -30,9 +33,11 @@ import org.eclipse.emf.compare.merge.BatchMerger;
 import org.eclipse.emf.compare.merge.IBatchMerger;
 import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
+import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.Data;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.DataProvider;
@@ -40,9 +45,9 @@ import org.eclipse.emf.emfstore.fuzzy.Annotations.Util;
 import org.eclipse.emf.emfstore.fuzzy.FuzzyRunner;
 import org.eclipse.emf.emfstore.fuzzy.emf.EMFDataProvider;
 import org.eclipse.emf.emfstore.fuzzy.emf.MutateUtil;
-import org.eclipse.emf.emfstore.modelmutator.api.ModelMutatorConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 
 /**
@@ -55,6 +60,10 @@ import org.junit.runner.RunWith;
 @SuppressWarnings("nls")
 public class FuzzyTest {
 
+	private enum Direction {
+		LEFT_TO_RIGHT, RIGHT_TO_LEFT;
+	}
+
 	@Data
 	private EObject root;
 
@@ -63,106 +72,33 @@ public class FuzzyTest {
 
 	private IMerger.Registry mergerRegistry = IMerger.RegistryImpl.createStandaloneInstance();
 
-	/**
-	 * Test to check if the {@link FuzzyRunner} is working.
-	 */
-	@Test
-	public void detectingNoDifferenceOnACopy() {
-		Assert.assertNotNull(root);
-		EObject backup = EcoreUtil.copy(root);
-		Comparison result = EMFCompare.builder().build().compare(
-				new DefaultComparisonScope(root, backup, null));
-		Assert.assertEquals(0, result.getDifferences().size());
+	private EObject leftWorkingRootObject;
+
+	private EObject rightWorkingRootObject;
+
+	private EObject leftOriginalRootObject;
+
+	private EObject rightOriginalRootObject;
+
+	@Before
+	public void mutate() {
+		// get and prepare left working root object
+		leftWorkingRootObject = root;
+		removeAllDuplicateCrossReferencesFrom(leftWorkingRootObject);
+
+		// create copy to create right working root object
+		rightWorkingRootObject = EcoreUtil.copy(leftWorkingRootObject);
+
+		// mutate left working root
+		util.mutate(EcorePackage.eINSTANCE, leftWorkingRootObject);
+		removeAllDuplicateCrossReferencesFrom(leftWorkingRootObject);
+
+		// create copies of left and right working objects to preserve
+		// original versions of left and right
+		leftOriginalRootObject = EcoreUtil.copy(leftWorkingRootObject);
+		rightOriginalRootObject = EcoreUtil.copy(rightWorkingRootObject);
 	}
-
-	/**
-	 * Test to check if the {@link FuzzyRunner} is working.
-	 */
-	@Test
-	public void copyAllRightToLeft() {
-		Assert.assertNotNull(root);
-		removeAllDuplicateCrossReferencesFrom(root);
-		EObject backup = EcoreUtil.copy(root);
-
-		util.mutate(createConfig());
-		EObject mutated = EcoreUtil.copy(root);
-		removeAllDuplicateCrossReferencesFrom(root);
-
-		Comparison result = EMFCompare.builder().build().compare(
-				new DefaultComparisonScope(root, backup, null));
-		int nbDiffs = result.getDifferences().size();
-		final IBatchMerger merger = new BatchMerger(mergerRegistry);
-		merger.copyAllRightToLeft(result.getDifferences(), new BasicMonitor());
-
-		for (Diff delta : result.getDifferences()) {
-			assertSame(delta.getState(), DifferenceState.MERGED);
-		}
-
-		Comparison valid = EMFCompare.builder().build().compare(
-				new DefaultComparisonScope(root, backup, null));
-		List<Diff> differences = valid.getDifferences();
-
-		Set<String> urisToDebug = Sets.newLinkedHashSet();
-		for (ReferenceChange diff : Iterables.filter(differences, ReferenceChange.class)) {
-			if (diff.getMatch().getRight() != null) {
-				urisToDebug.add(new URIDistance().apply(diff.getMatch().getRight()).toString());
-			}
-
-		}
-
-		if (urisToDebug.size() > 0) {
-			/*
-			 * restart
-			 */
-			root = EcoreUtil.copy(mutated);
-			result = EMFCompare.builder().build().compare(new DefaultComparisonScope(root, backup, null));
-			for (Diff diff : result.getDifferences()) {
-				if (diff.getMatch().getRight() != null) {
-					String uri = new URIDistance().apply(diff.getMatch().getRight()).toString();
-					if (urisToDebug.contains(uri)) {
-						final IMerger diffMerger = mergerRegistry.getHighestRankingMerger(diff);
-						diffMerger.copyRightToLeft(diff, new BasicMonitor());
-					}
-				}
-			}
-		}
-
-		Assert.assertEquals("We still have differences after merging all of them (had " + nbDiffs
-				+ " to merge in the beginning)", 0, differences.size());
-
-	}
-
-	/**
-	 * Test to check if the {@link FuzzyRunner} is working.
-	 */
-	@Test
-	public void copyAllLeftToRight() {
-		Assert.assertNotNull(root);
-		removeAllDuplicateCrossReferencesFrom(root);
-		EObject backup = EcoreUtil.copy(root);
-
-		util.mutate(createConfig());
-		removeAllDuplicateCrossReferencesFrom(root);
-
-		Comparison result = EMFCompare.builder().build().compare(
-				new DefaultComparisonScope(root, backup, null));
-		int nbDiffs = result.getDifferences().size();
-		final IBatchMerger merger = new BatchMerger(mergerRegistry);
-		merger.copyAllLeftToRight(result.getDifferences(), new BasicMonitor());
-
-		Comparison valid = EMFCompare.builder().build().compare(
-				new DefaultComparisonScope(root, backup, null));
-		List<Diff> differences = valid.getDifferences();
-		Assert.assertEquals("We still have differences after merging all of them (had " + nbDiffs
-				+ " to merge in the beginning)", 0, differences.size());
-	}
-
-	private ModelMutatorConfiguration createConfig() {
-		ModelMutatorConfiguration conf = new ModelMutatorConfiguration(EcorePackage.eINSTANCE, root, 1L);
-		conf.setMaxDeleteCount(0);
-		return conf;
-	}
-
+	
 	private static void removeAllDuplicateCrossReferencesFrom(EObject contentRoot) {
 		for (EReference reference : contentRoot.eClass().getEAllReferences()) {
 			if (!reference.isContainment() && !reference.isDerived() && reference.isMany()) {
@@ -182,5 +118,68 @@ public class FuzzyTest {
 		while (contentIterator.hasNext()) {
 			removeAllDuplicateCrossReferencesFrom(contentIterator.next());
 		}
+	}
+
+	@Test
+	public void copyAllRightToLeft() {
+		performBatchMergeAndEqualityCheckTest(Direction.RIGHT_TO_LEFT);
+	}
+
+	@Test
+	public void copyAllLeftToRight() {
+		performBatchMergeAndEqualityCheckTest(Direction.RIGHT_TO_LEFT);
+	}
+
+	private void performBatchMergeAndEqualityCheckTest(Direction direction) {
+		EList<Diff> diffs = mergeAndRecompare(leftWorkingRootObject, rightWorkingRootObject, direction);
+		assertNoDifferencesAndPrintDebugInfo(diffs, direction);
+	}
+
+	private EList<Diff> mergeAndRecompare(Notifier left, Notifier right, Direction direction) {
+		// perform comparison
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+		final EList<Diff> differences = comparison.getDifferences();
+
+		// batch merging of all detected differences
+		final IBatchMerger merger = new BatchMerger(mergerRegistry);
+		switch (direction) {
+			case LEFT_TO_RIGHT:
+				merger.copyAllLeftToRight(differences, new BasicMonitor());
+			case RIGHT_TO_LEFT:
+				merger.copyAllRightToLeft(differences, new BasicMonitor());
+		}
+
+		// re-compare and return detected differences
+		Comparison assertionComparison = EMFCompare.builder().build().compare(scope);
+		return assertionComparison.getDifferences();
+	}
+
+	private void assertNoDifferencesAndPrintDebugInfo(EList<Diff> differences, Direction direction) {
+		if (differences.size() > 0) {
+			util.saveEObject(leftOriginalRootObject, getDebugFileName("left", direction), true);
+			util.saveEObject(rightOriginalRootObject, getDebugFileName("right", direction), true);
+		}
+		Assert.assertEquals("We still have differences after merging all of them.", 0, differences.size());
+	}
+
+	private String getDebugFileName(String fileName, Direction direction) {
+		final String directionString = getDirectionName(direction);
+		return directionString + "_" + fileName;
+	}
+
+	private String getDirectionName(Direction direction) {
+		final String directionString;
+		switch (direction) {
+			case RIGHT_TO_LEFT:
+				directionString = "r2l";
+				break;
+			case LEFT_TO_RIGHT:
+				directionString = "l2r";
+				break;
+			default:
+				directionString = "";
+		}
+		return directionString;
 	}
 }
