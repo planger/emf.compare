@@ -72,4 +72,12 @@ public class TwoWayMergeInputData extends AbstractInputData {
 	public Resource getManyToManyReferenceChangesR2LRight() throws IOException {
 		return loadFromClassLoader("twoway/manytomanyreferencechanges/rtl/right.nodes");
 	}
+
+	public Resource getFuzzy167Left() throws IOException {
+		return loadFromClassLoader("twoway/fuzzy167/left.nodes");
+	}
+
+	public Resource getFuzzy167Right() throws IOException {
+		return loadFromClassLoader("twoway/fuzzy167/right.nodes");
+	}
 }
