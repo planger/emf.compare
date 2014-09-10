@@ -17,6 +17,7 @@ import junit.textui.TestRunner;
 import org.eclipse.emf.compare.ComparePackage;
 import org.eclipse.emf.compare.tests.command.CommandStackTestSuite;
 import org.eclipse.emf.compare.tests.conflict.ConflictDetectionTest;
+import org.eclipse.emf.compare.tests.conflict.MultiLineAttributeConflictDetectionTest;
 import org.eclipse.emf.compare.tests.diff.ComparisonUtilTest;
 import org.eclipse.emf.compare.tests.diff.DiffUtilTest;
 import org.eclipse.emf.compare.tests.diff.LCSPerformanceTest;
@@ -69,7 +70,8 @@ import org.junit.runners.Suite.SuiteClasses;
 		AllEditTests.class, CommandStackTestSuite.class, MatchEngineFactoryRegistryTest.class,
 		ConflictMergeTest.class, PseudoConflictMergeTest.class, ProximityIndexTest.class, AllRCPTests.class,
 		FeatureMaps2wayMergeTest.class, FeatureMaps3wayMergeTest.class, FeatureMapsConflictsMergeTest.class,
-		FeatureMapsPseudoConflictsMergeTest.class, TwoWayBatchMergingTest.class })
+		FeatureMapsPseudoConflictsMergeTest.class, TwoWayBatchMergingTest.class,
+		MultiLineAttributeConflictDetectionTest.class })
 public class AllTests {
 	/**
 	 * Standalone launcher for all of compare's tests.
