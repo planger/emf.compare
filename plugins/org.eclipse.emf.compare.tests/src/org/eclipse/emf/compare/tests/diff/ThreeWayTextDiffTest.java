@@ -11,6 +11,7 @@
 package org.eclipse.emf.compare.tests.diff;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -314,7 +315,6 @@ public class ThreeWayTextDiffTest {
 				+ "That's right.";
 
 		final String right = "They don't call it a Quarter Pounder with Cheese?" + NL //
-				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL //
 				+ "They call it a Royale with Cheese." + NL //
 				+ "Royale with Cheese." + NL //
 				+ "That's right." + NL //
@@ -361,7 +361,7 @@ public class ThreeWayTextDiffTest {
 
 	private void assertNonConflicting(String origin, String left, String right) {
 		final ThreeWayTextDiff diff = new ThreeWayTextDiff(origin, left, right);
-		assertTrue(diff.isConflicting());
+		assertFalse(diff.isConflicting());
 	}
 
 	private void assertConflictingBidirectional(String origin, String left, String right) {
