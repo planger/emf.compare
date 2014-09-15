@@ -10,12 +10,6 @@
  */
 package org.eclipse.emf.compare.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -25,10 +19,7 @@ import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
-import org.eclipse.emf.compare.DifferenceState;
 import org.eclipse.emf.compare.EMFCompare;
-import org.eclipse.emf.compare.ReferenceChange;
-import org.eclipse.emf.compare.match.eobject.URIDistance;
 import org.eclipse.emf.compare.merge.BatchMerger;
 import org.eclipse.emf.compare.merge.IBatchMerger;
 import org.eclipse.emf.compare.merge.IMerger;
@@ -37,7 +28,6 @@ import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcorePackage;
-import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.Data;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.DataProvider;
@@ -46,9 +36,11 @@ import org.eclipse.emf.emfstore.fuzzy.FuzzyRunner;
 import org.eclipse.emf.emfstore.fuzzy.emf.EMFDataProvider;
 import org.eclipse.emf.emfstore.fuzzy.emf.MutateUtil;
 import org.junit.Assert;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.google.common.collect.Sets;
 
 /**
  * A brute force test using fuzzy testing.
@@ -63,6 +55,8 @@ public class FuzzyTest {
 	private enum Direction {
 		LEFT_TO_RIGHT, RIGHT_TO_LEFT;
 	}
+
+	private final int MUTATION_COUNT = 3;
 
 	@Data
 	private EObject root;
@@ -90,7 +84,7 @@ public class FuzzyTest {
 		rightWorkingRootObject = EcoreUtil.copy(leftWorkingRootObject);
 
 		// mutate left working root
-		util.mutate(EcorePackage.eINSTANCE, leftWorkingRootObject);
+		util.mutate(EcorePackage.eINSTANCE, leftWorkingRootObject, MUTATION_COUNT);
 		removeAllDuplicateCrossReferencesFrom(leftWorkingRootObject);
 
 		// create copies of left and right working objects to preserve
@@ -98,7 +92,7 @@ public class FuzzyTest {
 		leftOriginalRootObject = EcoreUtil.copy(leftWorkingRootObject);
 		rightOriginalRootObject = EcoreUtil.copy(rightWorkingRootObject);
 	}
-	
+
 	private static void removeAllDuplicateCrossReferencesFrom(EObject contentRoot) {
 		for (EReference reference : contentRoot.eClass().getEAllReferences()) {
 			if (!reference.isContainment() && !reference.isDerived() && reference.isMany()) {
