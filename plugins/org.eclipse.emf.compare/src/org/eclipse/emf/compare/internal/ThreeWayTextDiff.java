@@ -10,6 +10,12 @@
  *******************************************************************************/
 package org.eclipse.emf.compare.internal;
 
+import java.util.LinkedList;
+
+import name.fraser.neil.plaintext.diff_match_patch;
+import name.fraser.neil.plaintext.diff_match_patch.Diff;
+import name.fraser.neil.plaintext.diff_match_patch.Patch;
+
 /**
  * Three-way differencing utility for plain text.
  * <p>
@@ -30,13 +36,22 @@ package org.eclipse.emf.compare.internal;
  */
 public class ThreeWayTextDiff {
 	/** The original version of the plain text. */
-	private String origin;
+	private final String origin;
 
 	/** The potentially modified left version of the origin. */
-	private String left;
+	private final String left;
 
 	/** The potentially modified right version of the origin. */
-	private String right;
+	private final String right;
+
+	/** The {@link diff_match_patch} instance. */
+	private final diff_match_patch dmp = new diff_match_patch();
+
+	/** The diffs of the left-hand side. */
+	private final LinkedList<Diff> leftDiffs;
+
+	/** The diffs of the right-hand side. */
+	private final LinkedList<Diff> rightDiffs;
 
 	/**
 	 * Constructs a {@link ThreeWayTextDiff} for the given {@code origin} of a plain text and the two
@@ -53,21 +68,40 @@ public class ThreeWayTextDiff {
 		this.origin = origin;
 		this.left = left;
 		this.right = right;
+
+		leftDiffs = dmp.diff_main(saveGet(origin), saveGet(left), true);
+		rightDiffs = dmp.diff_main(saveGet(origin), saveGet(right), true);
 	}
 
 	/**
 	 * Returns the original version.
 	 * 
-	 * @return the original version.
+	 * @return The original version.
 	 */
 	public String getOrigin() {
 		return origin;
 	}
 
 	/**
+	 * Returns an empty string if the given {@code text} is <code>null</code>, otherwise it returns
+	 * {@code text}.
+	 * 
+	 * @param text
+	 *            The string to get safely.
+	 * @return An empty string if {@code text} is <code>null</code>, otherwise {@code text}.
+	 */
+	private String saveGet(String text) {
+		if (text == null) {
+			return ""; //$NON-NLS-1$
+		} else {
+			return text;
+		}
+	}
+
+	/**
 	 * Returns the potentially modified left-hand side version of the origin.
 	 * 
-	 * @return the left version.
+	 * @return The left version.
 	 */
 	public String getLeft() {
 		return left;
@@ -76,7 +110,7 @@ public class ThreeWayTextDiff {
 	/**
 	 * Returns the potentially modified right-hand side version of the origin.
 	 * 
-	 * @return the right version.
+	 * @return The right version.
 	 */
 	public String getRight() {
 		return right;
@@ -94,21 +128,80 @@ public class ThreeWayTextDiff {
 	 * @return <code>true</code> if left and right is in conflict; <code>false</code> otherwise.
 	 */
 	public boolean isConflicting() {
+
 		// TODO implement
+
 		return false;
 	}
 
 	/**
 	 * Performs and returns a merge of the modifications of the left-hand side and the right-hand side.
 	 * <p>
-	 * TODO what to do when there is a conflict? Markers?
+	 * If the left-hand side diff and the right-hand side diff is not conflicting, the merge operation is
+	 * symmetric; that is, the merge result will always yield the same result, also when switching the
+	 * left-hand side and the right-hand side. If the diffs are conflicting, this method will still return a
+	 * merged version, taking the left-hand side and applying the patches of the right-hand side. However, in
+	 * this case, the merge operation might be not be symmetric; that is, switching left and right might yield
+	 * different merge results.
 	 * </p>
 	 * 
-	 * @return a merged version of left and right.
+	 * @return A merged version of left and right.
 	 */
 	public String getMerged() {
-		// TODO implement
-		return "";
+		final LinkedList<Patch> rightPatches = computePatches(rightDiffs);
+		final String patchedLeft = applyPatches(left, rightPatches);
+		final String merged = nullIfUnset(patchedLeft);
+		return merged;
+	}
+
+	/**
+	 * If {@link #left} or {@link #right} is {@link #isLeftOrRightUnset() unset} and the given
+	 * {@code mergeResult} is empty (i.e., the unset constitutes the merge result), this method returns
+	 * <code>null</code> to indicate an unset. Otherwise, this method returns {@code mergeResult}.
+	 * 
+	 * @param mergeResult
+	 *            The merge result to check for unset.
+	 * @return <code>null</code> if the merge result is an unset; otherwise {@code mergeResult}.
+	 */
+	private String nullIfUnset(final String mergeResult) {
+		if (mergeResult.length() < 1 && isLeftOrRightUnset()) {
+			return null;
+		} else {
+			return mergeResult;
+		}
+	}
+
+	/**
+	 * Specifies whether {@link #left} or {@link #right} has been unset.
+	 * 
+	 * @return <code>true</code> if left or right has been unset, <code>false</code> otherwise.
+	 */
+	private boolean isLeftOrRightUnset() {
+		return origin != null && (left == null || right == null);
+	}
+
+	/**
+	 * Computes and returns patches for the given {@code diffs}.
+	 * 
+	 * @param diffs
+	 *            The diffs to compute the patches for.
+	 * @return The computed patches.
+	 */
+	private LinkedList<Patch> computePatches(LinkedList<Diff> diffs) {
+		return dmp.patch_make(diffs);
+	}
+
+	/**
+	 * Applies the given {@code patches} to the given {@code base} text.
+	 * 
+	 * @param base
+	 *            The text to apply the {@code patches} to.
+	 * @param patches
+	 *            The patches to be applied.
+	 * @return The patched version of {@code base}.
+	 */
+	private String applyPatches(String base, LinkedList<Patch> patches) {
+		return (String)dmp.patch_apply(patches, saveGet(base))[0];
 	}
 
 }
