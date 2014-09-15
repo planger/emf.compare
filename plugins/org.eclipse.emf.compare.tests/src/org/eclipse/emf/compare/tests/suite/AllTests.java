@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Philip Langer - Adds additional test classes
  *******************************************************************************/
 package org.eclipse.emf.compare.tests.suite;
 
@@ -21,6 +22,7 @@ import org.eclipse.emf.compare.tests.conflict.MultiLineAttributeConflictDetectio
 import org.eclipse.emf.compare.tests.diff.ComparisonUtilTest;
 import org.eclipse.emf.compare.tests.diff.DiffUtilTest;
 import org.eclipse.emf.compare.tests.diff.LCSPerformanceTest;
+import org.eclipse.emf.compare.tests.diff.ThreeWayTextDiffTest;
 import org.eclipse.emf.compare.tests.diff.URIDistanceTest;
 import org.eclipse.emf.compare.tests.edit.AllEditTests;
 import org.eclipse.emf.compare.tests.equi.EquiComputingTest;
@@ -71,7 +73,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		ConflictMergeTest.class, PseudoConflictMergeTest.class, ProximityIndexTest.class, AllRCPTests.class,
 		FeatureMaps2wayMergeTest.class, FeatureMaps3wayMergeTest.class, FeatureMapsConflictsMergeTest.class,
 		FeatureMapsPseudoConflictsMergeTest.class, TwoWayBatchMergingTest.class,
-		MultiLineAttributeConflictDetectionTest.class })
+		MultiLineAttributeConflictDetectionTest.class, ThreeWayTextDiffTest.class })
 public class AllTests {
 	/**
 	 * Standalone launcher for all of compare's tests.
