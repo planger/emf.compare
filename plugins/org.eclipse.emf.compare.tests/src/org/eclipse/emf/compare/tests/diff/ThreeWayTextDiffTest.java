@@ -223,6 +223,38 @@ public class ThreeWayTextDiffTest {
 	}
 
 	@Test
+	public void changeLineAndRemoveSameAreaInMultiLineTextOnBothSides() throws IOException {
+		final String origin = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL //
+				+ "What do they call it?" + NL //
+				+ "They call it a Royale with Cheese." + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right." + NL //
+				+ "What do they call a Big Mac?" + NL //
+				+ "A Big Mac's a Big Mac, but they call it Le Big Mac.";
+
+		final String left = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL //
+				+ "What do they call it?" + NL //
+				+ "They call it a \"Royale with Cheese\"." + NL // changed
+				+ "Royale with Cheese." + NL //
+				+ "That's right." + NL //
+				+ "What do they call a Big Mac?" + NL //
+				+ "A Big Mac's a Big Mac, but they call it Le Big Mac.";
+
+		final String right = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL //
+				+ "" // deleted
+				+ "" // deleted
+				+ "" // deleted
+				+ "" // deleted
+				+ "What _do_ they call a Big Mac?" + NL // changed
+				+ "A Big Mac's a Big Mac, but they call it Le Big Mac.";
+
+		assertConflictingBidirectional(origin, left, right);
+	}
+
+	@Test
 	public void changeLineAndRemoveSameLineInMultiLineText() throws IOException {
 		final String origin = "They don't call it a Quarter Pounder with Cheese?" + NL //
 				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL //
@@ -262,13 +294,35 @@ public class ThreeWayTextDiffTest {
 				+ "That's right.";
 
 		final String left = "They don't call it a Quarter Pounder with Cheese?" + NL //
-				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL //
+				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL // added
 				+ "They call it a Royale with Cheese." + NL //
 				+ "Royale with Cheese." + NL //
 				+ "That's right.";
 
 		final String right = "They don't call it a Quarter Pounder with Cheese?" + NL //
-				+ "What do they call it?" + NL //
+				+ "What do they call it?" + NL // added
+				+ "They call it a Royale with Cheese." + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		assertConflictingBidirectional(origin, left, right);
+	}
+
+	@Test
+	public void addDifferentLinesIndirectlyAtSameLineInMultiLineText() throws IOException {
+		final String origin = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese." + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String left = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL // added
+				+ "They call it a \"Royale\" with Cheese." + NL // changed
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String right = "" // removed
+				+ "What do they call it?" + NL // added
 				+ "They call it a Royale with Cheese." + NL //
 				+ "Royale with Cheese." + NL //
 				+ "That's right.";
@@ -351,7 +405,7 @@ public class ThreeWayTextDiffTest {
 				+ "That's right." + NL //
 				+ "What do they call a Big Mac?"; // added
 
-		assertNonConflictingBidirectional(origin, left, right);
+		assertConflictingBidirectional(origin, left, right);
 	}
 
 	private void assertNonConflictingBidirectional(String origin, String left, String right) {
