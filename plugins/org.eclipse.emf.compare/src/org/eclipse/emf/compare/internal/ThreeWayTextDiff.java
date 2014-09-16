@@ -12,7 +12,7 @@ package org.eclipse.emf.compare.internal;
 
 import java.util.LinkedList;
 
-import name.fraser.neil.plaintext.diff_match_patch;
+import name.fraser.neil.plaintext.LineBasedDiff;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import name.fraser.neil.plaintext.diff_match_patch.Patch;
 
@@ -44,8 +44,8 @@ public class ThreeWayTextDiff {
 	/** The potentially modified right version of the origin. */
 	private final String right;
 
-	/** The {@link diff_match_patch} instance. */
-	private final diff_match_patch dmp = new diff_match_patch();
+	/** The {@link LineBasedDiff} instance. */
+	private final LineBasedDiff diff = new LineBasedDiff();
 
 	/** The diffs of the left-hand side. */
 	private final LinkedList<Diff> leftDiffs;
@@ -68,9 +68,21 @@ public class ThreeWayTextDiff {
 		this.origin = origin;
 		this.left = left;
 		this.right = right;
+		this.leftDiffs = computeLineBasedDiff(origin, left);
+		this.rightDiffs = computeLineBasedDiff(origin, right);
+	}
 
-		leftDiffs = dmp.diff_main(saveGet(origin), saveGet(left), true);
-		rightDiffs = dmp.diff_main(saveGet(origin), saveGet(right), true);
+	/**
+	 * Computes a line-based diff between {@code base} and {@code revision}.
+	 * 
+	 * @param base
+	 *            The original version of the plain text.
+	 * @param revision
+	 *            The revised version of the plain text.
+	 * @return The line-based differences between {@code base} and {@code revision}.
+	 */
+	private LinkedList<Diff> computeLineBasedDiff(String base, String revision) {
+		return diff.diff_lines_only(saveGet(base), saveGet(revision));
 	}
 
 	/**
@@ -188,7 +200,7 @@ public class ThreeWayTextDiff {
 	 * @return The computed patches.
 	 */
 	private LinkedList<Patch> computePatches(LinkedList<Diff> diffs) {
-		return dmp.patch_make(diffs);
+		return diff.patch_make(diffs);
 	}
 
 	/**
@@ -201,7 +213,7 @@ public class ThreeWayTextDiff {
 	 * @return The patched version of {@code base}.
 	 */
 	private String applyPatches(String base, LinkedList<Patch> patches) {
-		return (String)dmp.patch_apply(patches, saveGet(base))[0];
+		return (String)diff.patch_apply(patches, saveGet(base))[0];
 	}
 
 }
