@@ -121,7 +121,7 @@ public class FuzzyTest {
 
 	@Test
 	public void copyAllLeftToRight() {
-		performBatchMergeAndEqualityCheckTest(Direction.RIGHT_TO_LEFT);
+		performBatchMergeAndEqualityCheckTest(Direction.LEFT_TO_RIGHT);
 	}
 
 	private void performBatchMergeAndEqualityCheckTest(Direction direction) {
@@ -140,8 +140,10 @@ public class FuzzyTest {
 		switch (direction) {
 			case LEFT_TO_RIGHT:
 				merger.copyAllLeftToRight(differences, new BasicMonitor());
+				break;
 			case RIGHT_TO_LEFT:
 				merger.copyAllRightToLeft(differences, new BasicMonitor());
+				break;
 		}
 
 		// re-compare and return detected differences
