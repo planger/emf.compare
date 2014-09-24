@@ -10,8 +10,10 @@
  */
 package org.eclipse.emf.compare.tests;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.eclipse.emf.common.notify.Notifier;
@@ -134,6 +136,9 @@ public class FuzzyTest {
 		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
 		Comparison comparison = EMFCompare.builder().build().compare(scope);
 		final EList<Diff> differences = comparison.getDifferences();
+		
+		// shuffle differences to cover different orders of diffs to be merged
+		Collections.shuffle(differences, new Random(util.getSeed()));
 
 		// batch merging of all detected differences
 		final IBatchMerger merger = new BatchMerger(mergerRegistry);
