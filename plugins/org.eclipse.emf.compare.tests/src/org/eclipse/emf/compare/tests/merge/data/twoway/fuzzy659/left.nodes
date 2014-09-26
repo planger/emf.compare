@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ASCII"?>
+<org.eclipse.emf.emfstore.fuzzy.emf.config:Root xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:nodes="http://www.eclipse.org/emf/compare/tests/nodes" xmlns:org.eclipse.emf.emfstore.fuzzy.emf.config="http://org/eclipse/emf/emfstore/fuzzy/emf/config">
+  <elements xsi:type="nodes:NodeSingleValueReference"/>
+  <elements xsi:type="nodes:NodeFeatureMapNonContainment"/>
+  <elements xsi:type="nodes:NodeFeatureMapContainment">
+    <containmentRef1 xsi:type="nodes:NodeMultiValuedAttribute"/>
+  </elements>
+  <elements xsi:type="nodes:NodeMultipleContainment"/>
+  <elements xsi:type="ecore:EGenericType"/>
+</org.eclipse.emf.emfstore.fuzzy.emf.config:Root>

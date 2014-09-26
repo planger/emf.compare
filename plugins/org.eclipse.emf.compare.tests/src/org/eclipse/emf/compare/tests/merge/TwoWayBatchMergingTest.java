@@ -167,6 +167,13 @@ public class TwoWayBatchMergingTest {
 		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT);
 	}
 
+	@Test
+	public void mergingFuzzy659R2L() throws IOException {
+		final Resource left = input.getFuzzy659R2LLeft();
+		final Resource right = input.getFuzzy659R2LRight();
+		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT);
+	}
+
 	/**
 	 * Merges the given resources {@code left} and {@code right} using the {@link BatchMerger} in the
 	 * specified {@code direction}, re-compares left and right, and asserts their equality in the end.
