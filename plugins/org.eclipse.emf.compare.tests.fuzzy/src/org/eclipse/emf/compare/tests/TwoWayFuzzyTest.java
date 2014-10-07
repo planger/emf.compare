@@ -74,7 +74,6 @@ public class TwoWayFuzzyTest {
 			this.right = right;
 			this.direction = direction;
 		}
-
 	}
 
 	private IMerger.Registry mergerRegistry = IMerger.RegistryImpl.createStandaloneInstance();
@@ -196,14 +195,20 @@ public class TwoWayFuzzyTest {
 			final Notifier rightOriginal = getRightOriginalNotifier();
 			final Notifier leftOriginal = getLeftOriginalNotifier();
 			TwoWayMergeData originalData = new TwoWayMergeData(leftOriginal, rightOriginal, data.direction);
-			reportFailure(originalData, differences);
+			if(data.direction == MergeDirection.LEFT_TO_RIGHT){
+				reportFailure(originalData, (EObject) data.right, differences);
+			}else{
+				reportFailure(originalData, (EObject) data.left, differences);
+			}
+
 		}
 		Assert.assertEquals("We still have differences after merging all of them.", 0, success);
 	}
 
-	protected void reportFailure(TwoWayMergeData data, EList<Diff> differences) {
+	protected void reportFailure(TwoWayMergeData data, EObject merged, EList<Diff> differences) {
 		mutateUtil.saveEObject((EObject)data.left, getDebugFileName("left", data.direction), true);
 		mutateUtil.saveEObject((EObject)data.right, getDebugFileName("right", data.direction), true);
+		mutateUtil.saveEObject(merged, getDebugFileName("merged", data.direction), true);
 	}
 
 	private String getDebugFileName(String fileName, MergeDirection direction) {

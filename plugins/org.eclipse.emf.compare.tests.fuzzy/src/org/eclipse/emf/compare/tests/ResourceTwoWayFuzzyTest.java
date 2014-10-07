@@ -188,11 +188,11 @@ public class ResourceTwoWayFuzzyTest extends TwoWayFuzzyTest {
 	}
 
 	@Override
-	protected void reportFailure(TwoWayMergeData data, EList<Diff> differences) {
+	protected void reportFailure(TwoWayMergeData data, EObject merged, EList<Diff> differences) {
 		EObject left = ((Resource)data.left).getContents().get(0);
 		EObject right = ((Resource)data.right).getContents().get(0);
 		TwoWayMergeData objectData = new TwoWayMergeData(left, right, data.direction);
-		super.reportFailure(objectData, differences);
+		super.reportFailure(objectData, merged, differences);
 	}
 
 	@After
