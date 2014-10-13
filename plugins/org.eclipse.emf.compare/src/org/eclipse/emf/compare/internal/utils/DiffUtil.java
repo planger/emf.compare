@@ -7,7 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
- *     Philip Langer - Fixes for bug 440679, 441258, 442439, and refactorings
+ *     Philip Langer - Fixes for bug 440679, 441258, 442439, 443504, and refactorings
  *******************************************************************************/
 package org.eclipse.emf.compare.internal.utils;
 
@@ -48,6 +48,17 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  * @author <a href="mailto:laurent.goubet@obeo.fr">Laurent Goubet</a>
  */
 public final class DiffUtil {
+	/**
+	 * There are cases where two strings are found to be equal by the {@link #diceCoefficient(String, String)}
+	 * even though they're not "strictly" equal. For example, "pascale pierre" and "pierre pascale" would be
+	 * seen as "1.0" similarity. We'll use this constant instead of a plain "1d" in such cases.
+	 * <p>
+	 * This is the closest double to "1d" that is not equal to 1d (floating point arithmetics, IEEE-754).
+	 * We're using this as a java 5 equivalent to java 6 <code>Math.nextAfter(1d, 0d)</code>.
+	 * </p>
+	 */
+	private static final double SIMILAR = Double.longBitsToDouble(0x3fefffffffffffffL);
+
 	/** This utility class does not need to be instantiated. */
 	private DiffUtil() {
 		// Hides default constructor
@@ -58,22 +69,36 @@ public final class DiffUtil {
 	 * <p>
 	 * This implementation is case sensitive.
 	 * </p>
+	 * <p>
+	 * <b>Note</b> that this implementation handles two- (or less) character-long strings specifically,
+	 * degrading into a "char-by-char" comparison instead of using the bigram unit of the dice coefficient. We
+	 * want the similarity between <code>"v1"</code> and <code>"v2"</code> to be <code>0.5</code> and not
+	 * <code>0</code>. However, we also want <code>"v1"</code> and <code>"v2"</code> to be "more similar" to
+	 * each other than <code>"v"</code> and <code>"v2"</code> and <code>"v1"</code> and <code>"v11"</code> to
+	 * be "more similar" than <code>"v"</code> and <code>"v11"</code> while this latter also needs to be
+	 * "less similar" than <code>"v1"</code> and <code>"v2"</code>. This requires a slightly different
+	 * handling for comparisons with a "single character"-long string than for "two character"-long ones. A
+	 * set of invariants we wish to meet can be found in the unit tests.
+	 * </p>
 	 * 
 	 * @param first
 	 *            First of the two Strings to compare.
 	 * @param second
 	 *            Second of the two Strings to compare.
-	 * @return The dice coefficient of the two given String's bigrams, ranging from 0 to 1.
+	 * @return The dice coefficient of the two given String's bigrams, ranging from 0d to 1d.
 	 */
 	public static double diceCoefficient(String first, String second) {
 		final char[] str1 = first.toCharArray();
 		final char[] str2 = second.toCharArray();
 
-		final double coefficient;
-
 		if (Arrays.equals(str1, str2)) {
-			coefficient = 1d;
-		} else if (str1.length <= 2 || str2.length <= 2) {
+			return 1d;
+		}
+
+		final double coefficient;
+		if (str1.length == 0 || str2.length == 0) {
+			coefficient = 0d;
+		} else if (str1.length == 1 || str2.length == 1 || (str1.length == 2 && str2.length == 2)) {
 			int equalChars = 0;
 
 			for (int i = 0; i < Math.min(str1.length, str2.length); i++) {
@@ -84,28 +109,72 @@ public final class DiffUtil {
 
 			int union = str1.length + str2.length;
 			if (str1.length != str2.length) {
+				// one of the two is one (or 0) character long, don't double the matches
 				coefficient = (double)equalChars / union;
 			} else {
 				coefficient = ((double)equalChars * 2) / union;
 			}
 		} else {
-			Set<String> s1Bigrams = Sets.newHashSet();
-			Set<String> s2Bigrams = Sets.newHashSet();
+			final int[] s1Bigrams = toBigrams(str1);
+			final int[] s2Bigrams = toBigrams(str2);
 
-			for (int i = 0; i < str1.length - 1; i++) {
-				char[] chars = new char[] {str1[i], str1[i + 1], };
-				s1Bigrams.add(String.valueOf(chars));
-			}
-			for (int i = 0; i < str2.length - 1; i++) {
-				char[] chars = new char[] {str2[i], str2[i + 1], };
-				s2Bigrams.add(String.valueOf(chars));
+			// We've converted our bigrams to integers. Note that we do not care about the ordering of these
+			// integers, even if "bj" comes after "za" and before "az", this will pose no threat since we only
+			// use their ordering to hasten the comparisons thereafter.
+			Arrays.sort(s1Bigrams);
+			Arrays.sort(s2Bigrams);
+
+			int matchingBigrams = 0;
+			int index1 = 0;
+			int index2 = 0;
+			while (index1 < s1Bigrams.length && index2 < s2Bigrams.length) {
+				if (s1Bigrams[index1] == s2Bigrams[index2]) {
+					matchingBigrams++;
+					index1++;
+					index2++;
+				} else if (s1Bigrams[index1] < s2Bigrams[index2]) {
+					index1++;
+				} else {
+					index2++;
+				}
 			}
 
-			Set<String> intersection = Sets.intersection(s1Bigrams, s2Bigrams);
-			coefficient = (2d * intersection.size()) / (s1Bigrams.size() + s2Bigrams.size());
+			coefficient = (2d * matchingBigrams) / (s1Bigrams.length + s2Bigrams.length);
 		}
 
-		return coefficient;
+		// If the two Strings were equal, we'd have caught it in the first if of this method. On the contrary,
+		// if we're here, we know the two aren't exactly the same. However, since we're comparing through
+		// bigrams, we "may" end up with "1.0" similarity, which would make further comparisons hazardous. We
+		// might for example say that "Pascale Pierre" matches with "Pierre Pascale" even if there is another
+		// "Pascale Pierre" somewhere (since these strings' bigrams are the same). Reduce the end number to a
+		// value "close to one, but not equal to one".
+		return Math.min(coefficient, SIMILAR);
+	}
+
+	/**
+	 * Converts the array representation of a String into its individual bigrams. Should only be used on
+	 * arrays with size greater than or equal to 2.
+	 * <p>
+	 * Note that we're storing the individual bigrams into ints along the way, the first of a pair in the
+	 * least-significant 16 bits. <code>"ab"</code> would thus be converted to <code>6422625</code> or, as
+	 * seen bit-wise, <code>0000 0000 0110 0010 0000 0000 0110 0001</code>.
+	 * </p>
+	 * <p>
+	 * We're ignoring the sign of these objects since they do not influence the unicity of the mapping bigram
+	 * <-> int.
+	 * </p>
+	 * 
+	 * @param strArray
+	 *            The array representation of the string which bigrams we seek.
+	 * @return The individual bigrams of strArray, including potential duplicates.
+	 */
+	private static int[] toBigrams(char[] strArray) {
+		final int[] bigrams = new int[strArray.length - 1];
+		final int charBitLength = 16;
+		for (int i = 0; i < strArray.length - 1; i++) {
+			bigrams[i] = strArray[i] | (strArray[i + 1] << charBitLength);
+		}
+		return bigrams;
 	}
 
 	/**
@@ -803,8 +872,8 @@ public final class DiffUtil {
 		final List<Object> targetList = getTargetList(comparison, diff, rightToLeft);
 		final Object changedValue = getChangedValue(diff);
 
-		Iterable<Object> ignoredElements = Iterables.concat(computeIgnoredElements(targetList, diff),
-				Collections.singleton(changedValue));
+		Iterable<Object> ignoredElements = computeIgnoredElements(targetList, diff, rightToLeft);
+		ignoredElements = Iterables.concat(ignoredElements, Collections.singleton(changedValue));
 		// We know we'll have to iterate quite a number of times on this one.
 		ignoredElements = Lists.newArrayList(ignoredElements);
 
@@ -1040,33 +1109,28 @@ public final class DiffUtil {
 	 *            The diff we are computing an insertion index for.
 	 * @param <E>
 	 *            Type of the list's content.
+	 * @param rightToLeft
+	 *            Direction of the merging. {@code true} if the merge is to be done on the left side, making
+	 *            'target' the right side, {@code false} otherwise.
 	 * @return The list of elements that should be ignored when computing the insertion index for a new
 	 *         element in {@code candidates}.
 	 */
-	private static <E> Iterable<E> computeIgnoredElements(Iterable<E> candidates, final Diff diff) {
+	private static <E> Iterable<E> computeIgnoredElements(Iterable<E> candidates, final Diff diff,
+			boolean rightToLeft) {
 		final Match match = diff.getMatch();
 		final Iterable<? extends Diff> filteredCandidates = Lists.newArrayList(match.getDifferences());
-		final EStructuralFeature feature;
-		if (diff instanceof AttributeChange) {
-			feature = ((AttributeChange)diff).getAttribute();
-		} else if (diff instanceof ReferenceChange) {
-			feature = ((ReferenceChange)diff).getReference();
-		} else if (diff instanceof FeatureMapChange) {
-			feature = ((FeatureMapChange)diff).getAttribute();
-		} else {
-			return Collections.emptyList();
-		}
 
 		final Set<E> ignored = Sets.newLinkedHashSet();
 		for (E candidate : candidates) {
 			if (candidate instanceof EObject) {
 				final Iterable<? extends Diff> differences = match.getComparison().getDifferences(
 						(EObject)candidate);
-				if (Iterables.any(differences, new UnresolvedDiffMatching(feature, candidate))) {
+				if (Iterables.any(differences, new UnresolvedDiffMatching(diff, candidate, rightToLeft))) {
 					ignored.add(candidate);
 				}
 			} else {
-				if (Iterables.any(filteredCandidates, new UnresolvedDiffMatching(feature, candidate))) {
+				if (Iterables.any(filteredCandidates,
+						new UnresolvedDiffMatching(diff, candidate, rightToLeft))) {
 					ignored.add(candidate);
 				}
 			}
@@ -1081,24 +1145,63 @@ public final class DiffUtil {
 	 * @author <a href="mailto:laurent.goubet@obeo.fr">Laurent Goubet</a>
 	 */
 	private static class UnresolvedDiffMatching implements Predicate<Diff> {
-		/** Feature on which we expect an unresolved diff. */
-		private final EStructuralFeature feature;
+		/** Diff to compare against. */
+		private final Diff referenceDiff;
 
-		/** Element for which we expect an unresolved diff. */
-		private final Object element;
+		/** The value changed by {@link #referenceDiff} to compare against. */
+		private final Object referenceValue;
+
+		/** The comparison of the {@link #referenceDiff diff's} {@link Diff#getMatch() match}. */
+		private final Comparison comparison;
+
+		/** The equality helper of the {@link #referenceDiff diff's} {@link Diff#getMatch() match}. */
+		private final IEqualityHelper equalityHelper;
+
+		/** The direction of the merge. */
+		private final boolean rightToLeft;
 
 		/**
-		 * Constructs a predicate that can be used to retrieve all unresolved diffs that apply to the given
-		 * {@code feature} and {@code element}.
+		 * Constructs a predicate that can be used to retrieve all unresolved diffs that apply to the target
+		 * feature and container of the given {@code diff} and that affect the same value as the given
+		 * {@code value}.
 		 * 
-		 * @param feature
-		 *            The feature which our diffs must concern.
-		 * @param element
-		 *            The element which must be our diffs' target.
+		 * @param diff
+		 *            to compare against this diff's target feature and container.
+		 * @param value
+		 *            to compare against this value.
+		 * @param rightToLeft
+		 *            the direction of the merging, which is used to obtain the diff's target feature and
+		 *            container.
 		 */
-		public UnresolvedDiffMatching(EStructuralFeature feature, Object element) {
-			this.feature = feature;
-			this.element = element;
+		public UnresolvedDiffMatching(Diff diff, Object value, boolean rightToLeft) {
+			this.referenceDiff = diff;
+			this.referenceValue = value;
+			this.comparison = getComparison(diff);
+			this.equalityHelper = getEqualityHelper(diff);
+			this.rightToLeft = rightToLeft;
+		}
+
+		/**
+		 * Returns the {@link Comparison} of the given {@code diff} element.
+		 * 
+		 * @param diff
+		 *            the diff element to get its comparison.
+		 * @return the {@link Comparison} of {@code diff}.
+		 */
+		private static Comparison getComparison(Diff diff) {
+			return diff.getMatch().getComparison();
+		}
+
+		/**
+		 * Returns the {@link IEqualityHelper} of the given {@code diff}'s {@link #getComparison(Diff)
+		 * comparison} element.
+		 * 
+		 * @param diff
+		 *            the diff element to get its comparison's equality helper.
+		 * @return the {@link Comparison} of {@code diff}.
+		 */
+		private static IEqualityHelper getEqualityHelper(Diff diff) {
+			return getComparison(diff).getEqualityHelper();
 		}
 
 		/**
@@ -1107,80 +1210,83 @@ public final class DiffUtil {
 		 * @see com.google.common.base.Predicate#apply(java.lang.Object)
 		 */
 		public boolean apply(Diff input) {
-			boolean apply = false;
-			if (input instanceof AttributeChange) {
-				apply = input.getState() == DifferenceState.UNRESOLVED
-						&& ((AttributeChange)input).getAttribute() == feature
-						&& matchingValues((AttributeChange)input, element);
+			return isUnresolved(input) && matchesTarget(input) && matchesValue(input);
+		}
+
+		/**
+		 * Specifies whether the given {@code diff} is unresolved (i.e., has not been merged yet).
+		 * 
+		 * @param input
+		 *            diff to check.
+		 * @return <code>true</code> if it is unresolved, otherwise <code>false</code>.
+		 */
+		private boolean isUnresolved(Diff input) {
+			return input.getState() == DifferenceState.UNRESOLVED;
+		}
+
+		/**
+		 * Specifies whether the given {@code diff} matches the target container and feature of the
+		 * {@link #referenceDiff reference diff} of this predicate.
+		 * 
+		 * @param input
+		 *            diff to check.
+		 * @return <code>true</code> if it matches the target container and feature, <code>false</code>
+		 *         otherwise.
+		 */
+		private boolean matchesTarget(Diff input) {
+			return matchesTargetFeature(input) && matchesTargetContainer(input);
+		}
+
+		/**
+		 * Specifies whether the given {@code diff} matches the target feature of the {@link #referenceDiff
+		 * reference diff} of this predicate.
+		 * 
+		 * @param input
+		 *            diff to check.
+		 * @return <code>true</code> if it matches the target feature, <code>false</code> otherwise.
+		 */
+		private boolean matchesTargetFeature(Diff input) {
+			final EStructuralFeature refFeature = getTargetFeature(comparison, referenceDiff, rightToLeft);
+			final EStructuralFeature inputFeature = getTargetFeature(comparison, input, rightToLeft);
+			return refFeature == inputFeature;
+		}
+
+		/**
+		 * Specifies whether the given {@code diff} matches the target container of the {@link #referenceDiff
+		 * reference diff} of this predicate.
+		 * 
+		 * @param input
+		 *            diff to check.
+		 * @return <code>true</code> if it matches the target container, <code>false</code> otherwise.
+		 */
+		private boolean matchesTargetContainer(Diff input) {
+			final EObject refContainer = getTargetContainer(comparison, referenceDiff, rightToLeft);
+			final EObject inputContainer = getTargetContainer(comparison, input, rightToLeft);
+			return refContainer == inputContainer;
+		}
+
+		/**
+		 * Specifies whether the affected value of the given {@code diff} matches the {@link #referenceValue
+		 * reference value} of this predicate.
+		 * 
+		 * @param input
+		 *            diff to check.
+		 * @return <code>true</code> if the affected value matches the reference value, <code>false</code>
+		 *         otherwise.
+		 */
+		private boolean matchesValue(Diff input) {
+			final boolean matchesValue;
+			final Object inputValue = getChangedValue(input);
+			if (inputValue == referenceValue) {
+				matchesValue = true;
+			} else if (input instanceof AttributeChange || input instanceof FeatureMapChange) {
+				matchesValue = equalityHelper.matchingAttributeValues(inputValue, referenceValue);
 			} else if (input instanceof ReferenceChange) {
-				apply = input.getState() == DifferenceState.UNRESOLVED
-						&& ((ReferenceChange)input).getReference() == feature
-						&& matchingValues((ReferenceChange)input, element);
-			} else if (input instanceof FeatureMapChange) {
-				apply = input.getState() == DifferenceState.UNRESOLVED
-						&& ((FeatureMapChange)input).getAttribute() == feature
-						&& matchingValues((FeatureMapChange)input, element);
+				matchesValue = equalityHelper.matchingValues(inputValue, referenceValue);
 			} else {
-				apply = false;
+				matchesValue = false;
 			}
-			return apply;
-		}
-
-		/**
-		 * Checks that the value of the given diff matches <code>value</code>, resorting to the equality
-		 * helper if needed.
-		 * 
-		 * @param diff
-		 *            The diff which value we need to check.
-		 * @param value
-		 *            The expected value of <code>diff</code>
-		 * @return <code>true</code> if the value matches.
-		 */
-		private boolean matchingValues(AttributeChange diff, Object value) {
-			if (diff.getValue() == value) {
-				return true;
-			}
-			// Only resort to the equality helper as "last resort"
-			final IEqualityHelper helper = diff.getMatch().getComparison().getEqualityHelper();
-			return helper.matchingAttributeValues(diff.getValue(), value);
-		}
-
-		/**
-		 * Checks that the value of the given diff matches <code>value</code>, resorting to the equality
-		 * helper if needed.
-		 * 
-		 * @param diff
-		 *            The diff which value we need to check.
-		 * @param value
-		 *            The expected value of <code>diff</code>
-		 * @return <code>true</code> if the value matches.
-		 */
-		private boolean matchingValues(FeatureMapChange diff, Object value) {
-			if (diff.getValue() == value) {
-				return true;
-			}
-			// Only resort to the equality helper as "last resort"
-			final IEqualityHelper helper = diff.getMatch().getComparison().getEqualityHelper();
-			return helper.matchingAttributeValues(diff.getValue(), value);
-		}
-
-		/**
-		 * Checks that the value of the given diff matches <code>value</code>, resorting to the equality
-		 * helper if needed.
-		 * 
-		 * @param diff
-		 *            The diff which value we need to check.
-		 * @param value
-		 *            The expected value of <code>diff</code>
-		 * @return <code>true</code> if the value matches.
-		 */
-		private boolean matchingValues(ReferenceChange diff, Object value) {
-			if (diff.getValue() == value) {
-				return true;
-			}
-			// Only resort to the equality helper as "last resort"
-			final IEqualityHelper helper = diff.getMatch().getComparison().getEqualityHelper();
-			return helper.matchingValues(diff.getValue(), value);
+			return matchesValue;
 		}
 	}
 }

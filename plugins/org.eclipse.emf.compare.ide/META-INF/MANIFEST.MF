@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.emf.compare.ide;singleton:=true
-Bundle-Version: 3.1.0.qualifier
+Bundle-Version: 3.2.0.qualifier
 Bundle-Activator: org.eclipse.emf.compare.ide.EMFCompareIDEPlugin
 Bundle-Vendor: %providerName
 Require-Bundle: org.eclipse.core.runtime,
@@ -20,5 +20,5 @@ Import-Package: com.google.common.annotations;version="[11.0.0,16.0.0)",
  com.google.common.io;version="[11.0.0,16.0.0)",
  com.google.common.util.concurrent;version="[11.0.0,16.0.0)"
 Export-Package: org.eclipse.emf.compare.ide,
- org.eclipse.emf.compare.ide.internal.utils;x-friends:="org.eclipse.emf.compare.ide.ui",
+ org.eclipse.emf.compare.ide.internal.utils;x-friends:="org.eclipse.emf.compare.ide.ui,org.eclipse.emf.compare.uml2.ide.tests",
  org.eclipse.emf.compare.ide.utils

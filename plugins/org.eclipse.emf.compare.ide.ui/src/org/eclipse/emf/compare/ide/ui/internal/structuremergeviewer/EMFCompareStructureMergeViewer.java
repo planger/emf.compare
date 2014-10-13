@@ -14,7 +14,6 @@ import static com.google.common.base.Predicates.and;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.any;
-import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.size;
 import static org.eclipse.emf.compare.ide.ui.internal.structuremergeviewer.EMFCompareStructureMergeViewerContentProvider.CallbackType.IN_UI_ASYNC;
 import static org.eclipse.emf.compare.ide.ui.internal.structuremergeviewer.EMFCompareStructureMergeViewerContentProvider.CallbackType.IN_UI_SYNC;
@@ -27,6 +26,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.eventbus.Subscribe;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.List;
@@ -84,6 +84,7 @@ import org.eclipse.emf.compare.ide.ui.internal.logical.EmptyComparisonScope;
 import org.eclipse.emf.compare.ide.ui.internal.progress.JobProgressInfoComposite;
 import org.eclipse.emf.compare.ide.ui.internal.progress.JobProgressMonitorWrapper;
 import org.eclipse.emf.compare.ide.ui.internal.structuremergeviewer.EMFCompareStructureMergeViewerContentProvider.FetchListener;
+import org.eclipse.emf.compare.ide.ui.internal.structuremergeviewer.actions.MergeAction;
 import org.eclipse.emf.compare.ide.ui.internal.util.CompareHandlerService;
 import org.eclipse.emf.compare.ide.ui.internal.util.JFaceUtil;
 import org.eclipse.emf.compare.internal.merge.MergeMode;
@@ -114,8 +115,13 @@ import org.eclipse.emf.edit.provider.ReflectiveItemProviderAdapterFactory;
 import org.eclipse.emf.edit.provider.resource.ResourceItemProviderAdapterFactory;
 import org.eclipse.emf.edit.tree.TreeFactory;
 import org.eclipse.emf.edit.tree.TreeNode;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -138,6 +144,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.PlatformUI;
@@ -274,6 +281,8 @@ public class EMFCompareStructureMergeViewer extends AbstractStructuredViewerWrap
 				structureMergeViewerGrouper, structureMergeViewerFilter, getCompareConfiguration());
 		getViewer().addSelectionChangedListener(toolBar);
 
+		createContextMenu();
+
 		selectionChangeListener = new ISelectionChangedListener() {
 			public void selectionChanged(SelectionChangedEvent event) {
 				handleSelectionChangedEvent(event);
@@ -343,6 +352,68 @@ public class EMFCompareStructureMergeViewer extends AbstractStructuredViewerWrap
 				toolBar.initToolbar(getViewer(), navigatable);
 			}
 		});
+	}
+
+	/**
+	 * Allow users to merge diffs through context menu.
+	 */
+	private void createContextMenu() {
+		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
+		menuMgr.setRemoveAllWhenShown(true);
+		menuMgr.addMenuListener(new IMenuListener() {
+			public void menuAboutToShow(IMenuManager manager) {
+				EMFCompareStructureMergeViewer.this.fillContextMenu(manager);
+			}
+		});
+		Menu menu = menuMgr.createContextMenu(getViewer().getControl());
+		getViewer().getControl().setMenu(menu);
+	}
+
+	/**
+	 * Fill the context menu with the appropriate actions (ACCEPT/REJECT or LEFT TO RIGHT/RIGHT TO LEFT
+	 * depending on the {@link org.eclipse.emf.compare.internal.merge.MergeMode}, and the write access of
+	 * models in input).
+	 * 
+	 * @param manager
+	 *            the context menu to fill.
+	 */
+	private void fillContextMenu(IMenuManager manager) {
+		if (!isDiffSelected()) {
+			return;
+		}
+		boolean leftEditable = getCompareConfiguration().isLeftEditable();
+		boolean rightEditable = getCompareConfiguration().isRightEditable();
+		final EnumSet<MergeMode> modes;
+		if (rightEditable && leftEditable) {
+			modes = EnumSet.of(MergeMode.RIGHT_TO_LEFT, MergeMode.LEFT_TO_RIGHT);
+		} else {
+			modes = EnumSet.of(MergeMode.ACCEPT, MergeMode.REJECT);
+		}
+		if (rightEditable || leftEditable) {
+			for (MergeMode mode : modes) {
+				IMerger.Registry mergerRegistry = EMFCompareRCPPlugin.getDefault().getMergerRegistry();
+				MergeAction mergeAction = new MergeAction(getCompareConfiguration().getEditingDomain(),
+						mergerRegistry, mode, leftEditable, rightEditable, navigatable,
+						(IStructuredSelection)getSelection());
+				manager.add(mergeAction);
+			}
+		}
+	}
+
+	/**
+	 * Check if the item selected in this viewer is a single Diff.
+	 * 
+	 * @return true if the item selected is a single Diff, false otherwise.
+	 */
+	private boolean isDiffSelected() {
+		ISelection selection = getSelection();
+		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).size() == 1) {
+			Object element = ((IStructuredSelection)selection).getFirstElement();
+			if (getDataOfTreeNodeOfAdapter(element) instanceof Diff) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -655,32 +726,39 @@ public class EMFCompareStructureMergeViewer extends AbstractStructuredViewerWrap
 			if (!affectedObjects.isEmpty()) {
 				// MUST NOT call a setSelection with a list, o.e.compare does not handle it (cf
 				// org.eclipse.compare.CompareEditorInput#getElement(ISelection))
-				Object first = getFirst(affectedObjects, null);
-				if (first instanceof EObject) {
-					IDifferenceGroupProvider groupProvider = getCompareConfiguration()
-							.getStructureMergeViewerGrouper().getProvider();
-					Iterable<TreeNode> treeNodes = groupProvider.getTreeNodes((EObject)first);
-					TreeNode treeNode = getFirst(treeNodes, null);
-					if (treeNode != null) {
-						final Object adaptedAffectedObject = fAdapterFactory.adapt(treeNode,
-								ICompareInput.class);
-						// execute synchronously the set selection to be sure the MergeAction#run() will
-						// select next diff after.
-						SWTUtil.safeSyncExec(new Runnable() {
-							public void run() {
-								refresh();
-								StructuredSelection selection = new StructuredSelection(adaptedAffectedObject);
-								// allows to call CompareToolBar#selectionChanged(SelectionChangedEvent)
-								getViewer().setSelection(selection);
-							}
-						});
-						// update content viewers with the new selection
-						SWTUtil.safeAsyncExec(new Runnable() {
-							public void run() {
-								navigatable.openSelectedChange();
-							}
-						});
+				final Iterator<EObject> affectedIterator = Iterables.filter(affectedObjects, EObject.class)
+						.iterator();
+				IDifferenceGroupProvider groupProvider = getCompareConfiguration()
+						.getStructureMergeViewerGrouper().getProvider();
+				TreeNode unfilteredNode = null;
+				while (affectedIterator.hasNext() && unfilteredNode == null) {
+					EObject affected = affectedIterator.next();
+					Iterable<TreeNode> treeNodes = groupProvider.getTreeNodes(affected);
+					for (TreeNode node : treeNodes) {
+						if (!JFaceUtil.isFiltered(getViewer(), node, node.getParent())) {
+							unfilteredNode = node;
+						}
 					}
+				}
+				if (unfilteredNode != null) {
+					final Object adaptedAffectedObject = fAdapterFactory.adapt(unfilteredNode,
+							ICompareInput.class);
+					// execute synchronously the set selection to be sure the MergeAction#run() will
+					// select next diff after.
+					SWTUtil.safeSyncExec(new Runnable() {
+						public void run() {
+							refresh();
+							StructuredSelection selection = new StructuredSelection(adaptedAffectedObject);
+							// allows to call CompareToolBar#selectionChanged(SelectionChangedEvent)
+							getViewer().setSelection(selection);
+						}
+					});
+					// update content viewers with the new selection
+					SWTUtil.safeAsyncExec(new Runnable() {
+						public void run() {
+							navigatable.openSelectedChange();
+						}
+					});
 				}
 			}
 		} else {
@@ -791,11 +869,9 @@ public class EMFCompareStructureMergeViewer extends AbstractStructuredViewerWrap
 			if (input instanceof CompareInputAdapter) {
 				resourcesShouldBeUnload = false;
 				compareInputChanged((CompareInputAdapter)input, monitor);
-				initToolbar();
 			} else if (input instanceof ComparisonScopeInput) {
 				resourcesShouldBeUnload = false;
 				compareInputChanged((ComparisonScopeInput)input, monitor);
-				initToolbar();
 			} else {
 				resourcesShouldBeUnload = true;
 				SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
@@ -834,8 +910,6 @@ public class EMFCompareStructureMergeViewer extends AbstractStructuredViewerWrap
 				} else {
 					compareConfiguration.setMergePreviewMode(MergeMode.ACCEPT);
 				}
-
-				initToolbar();
 
 				final BasicDiagnostic diagnostic = new BasicDiagnostic(Diagnostic.OK,
 						EMFCompareIDEUIPlugin.PLUGIN_ID, 0, null, new Object[0]);
@@ -895,6 +969,7 @@ public class EMFCompareStructureMergeViewer extends AbstractStructuredViewerWrap
 
 				compareInputChanged(scope, compareResult);
 			}
+			initToolbar();
 		} else {
 			compareInputChangedToNull();
 		}

@@ -234,7 +234,9 @@ public final class ResourceUtil {
 		// Furthermore, "ws" could be a git repository, in which case we would be here with
 		// ws/project/test.ecore
 		URI uri;
-		if (path.startsWith("file:/")) { //$NON-NLS-1$
+		if (path.startsWith("platform:/plugin/")) { //$NON-NLS-1$
+			uri = URI.createURI(path);
+		} else if (path.startsWith("file:/")) { //$NON-NLS-1$
 			uri = URI.createURI(path);
 		} else {
 			uri = URI.createFileURI(path);
@@ -454,7 +456,7 @@ public final class ResourceUtil {
 				result = false;
 			} else {
 				for (int i = 0; i < length1 && result; i++) {
-					result = array1[i] == array2[i] && array1[1] == array3[i];
+					result = array1[i] == array2[i] && array1[i] == array3[i];
 				}
 			}
 			return result;

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.emf.compare.tests;singleton:=true
-Bundle-Version: 3.1.0.qualifier
+Bundle-Version: 3.2.0.qualifier
 Bundle-Activator: org.eclipse.emf.compare.tests.EMFCompareTestsPlugin
 Bundle-ClassPath: .
 Bundle-Vendor: %providerName
@@ -25,6 +25,7 @@ Export-Package: org.eclipse.emf.compare.tests,
  org.eclipse.emf.compare.tests.conflict,
  org.eclipse.emf.compare.tests.conflict.data,
  org.eclipse.emf.compare.tests.diff,
+ org.eclipse.emf.compare.tests.diff.data.featurefilter.featuremap,
  org.eclipse.emf.compare.tests.edit,
  org.eclipse.emf.compare.tests.edit.data,
  org.eclipse.emf.compare.tests.edit.data.ecore.a1,
@@ -45,8 +46,6 @@ Export-Package: org.eclipse.emf.compare.tests,
  org.eclipse.emf.compare.tests.nodes,
  org.eclipse.emf.compare.tests.nodes.impl,
  org.eclipse.emf.compare.tests.nodes.util,
- org.eclipse.emf.compare.tests.postprocess,
- org.eclipse.emf.compare.tests.postprocess.data,
  org.eclipse.emf.compare.tests.postprocess,
  org.eclipse.emf.compare.tests.postprocess.data,
  org.eclipse.emf.compare.tests.req,
