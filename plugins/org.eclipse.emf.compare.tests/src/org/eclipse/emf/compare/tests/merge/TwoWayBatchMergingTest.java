@@ -13,6 +13,8 @@ package org.eclipse.emf.compare.tests.merge;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Random;
 
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.common.util.EList;
@@ -74,7 +76,7 @@ public class TwoWayBatchMergingTest {
 	public void mergingMoveToDifferentContainmentFeatureR2L() throws IOException {
 		final Resource left = input.getMoveToDifferentContainmentFeatureRTLLeft();
 		final Resource right = input.getMoveToDifferentContainmentFeatureRTLRight();
-		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT);
+		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT, null);
 	}
 
 	/**
@@ -88,7 +90,7 @@ public class TwoWayBatchMergingTest {
 	public void mergingMoveToDifferentContainmentFeatureL2R() throws IOException {
 		final Resource left = input.getMoveToDifferentContainmentFeatureL2RLeft();
 		final Resource right = input.getMoveToDifferentContainmentFeatureL2RRight();
-		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT);
+		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT, null);
 	}
 
 	/**
@@ -115,7 +117,7 @@ public class TwoWayBatchMergingTest {
 	public void mergingOppositeReferenceChangeWithoutMatchingOriginalL2R() throws IOException {
 		final Resource left = input.getOppositeReferenceChangeWithoutMatchingOrignalContainerL2RLeft();
 		final Resource right = input.getOppositeReferenceChangeWithoutMatchingOrignalContainerL2RRight();
-		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT);
+		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT, null);
 	}
 
 	/**
@@ -134,7 +136,7 @@ public class TwoWayBatchMergingTest {
 	public void mergingOppositeReferenceChangeWithAddAndDeleteOnMultivaluedSideR2L() throws IOException {
 		final Resource left = input.getOppositeReferenceChangeWithAddAndDeleteOnMultivaluedSideLeft();
 		final Resource right = input.getOppositeReferenceChangeWithAddAndDeleteOnMultivaluedSideRight();
-		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT);
+		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT, null);
 	}
 
 	/**
@@ -148,7 +150,7 @@ public class TwoWayBatchMergingTest {
 	public void mergingMoveFromSingleValueReferenceToMultiValueReferenceR2L() throws IOException {
 		final Resource left = input.getMoveFromSingleValueReferenceToMultiValueReferenceR2LLeft();
 		final Resource right = input.getMoveFromSingleValueReferenceToMultiValueReferenceR2LRight();
-		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT);
+		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT, null);
 	}
 
 	/**
@@ -164,7 +166,7 @@ public class TwoWayBatchMergingTest {
 	public void mergingMoveToNewContainerInADifferentOrderR2L() throws IOException {
 		final Resource left = input.getMoveToNewContainerInADifferentOrderR2LLeft();
 		final Resource right = input.getMoveToNewContainerInADifferentOrderR2LRight();
-		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT);
+		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT, null);
 	}
 
 	/**
@@ -183,23 +185,35 @@ public class TwoWayBatchMergingTest {
 	public void mergingManyToManyReferenceChangesR2L() throws IOException {
 		final Resource left = input.getManyToManyReferenceChangesR2LLeft();
 		final Resource right = input.getManyToManyReferenceChangesR2LRight();
-		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT);
+		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT, null);
 	}
 
 	/**
 	 * Merges the given resources {@code left} and {@code right} using the {@link BatchMerger} in the
-	 * specified {@code direction}, re-compares left and right, and asserts their equality in the end.
+	 * specified {@code direction} (optionally shuffled), re-compares left and right, and asserts their
+	 * equality in the end.
 	 * 
 	 * @param left
 	 *            left resource.
 	 * @param right
 	 *            right resource.
+	 * @param direction
+	 *            the direction of the merge. Must be either {@link Direction.LEFT_TO_RIGHT} or
+	 *            {@link Direction.RIGHT_TO_LEFT}.
+	 * @param diffShuffler
+	 *            is used to shuffle the merge order of the differences. Use {@code null} if you don't want to
+	 *            shuffle.
 	 */
-	private void batchMergeAndAssertEquality(Resource left, Resource right, Direction direction) {
+	private void batchMergeAndAssertEquality(Resource left, Resource right, Direction direction,
+			Random diffShuffler) {
 		// perform comparison
 		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
 		Comparison comparison = EMFCompare.builder().build().compare(scope);
 		final EList<Diff> differences = comparison.getDifferences();
+
+		if (diffShuffler != null) {
+			Collections.shuffle(differences, diffShuffler);
+		}
 
 		// batch merging of all detected differences:
 		final IBatchMerger merger = new BatchMerger(mergerRegistry);
@@ -214,6 +228,23 @@ public class TwoWayBatchMergingTest {
 		Comparison assertionComparison = EMFCompare.builder().build().compare(scope);
 		EList<Diff> assertionDifferences = assertionComparison.getDifferences();
 		assertEquals(0, assertionDifferences.size());
+	}
+
+	/**
+	 * Generates the same deterministic Random some of the FuzzyTests use to shuffle the order of the merges.
+	 * 
+	 * @param initialSeed
+	 *            the initial seed used for generating the tests
+	 * @param testNumber
+	 *            the number of the test for which the random is to be generated
+	 * @return
+	 */
+	private Random getDiffShuffler(long initialSeed, long testNumber) {
+		Random seedRandom = new Random(initialSeed);
+		for (long i = 0; i < testNumber; i++) {
+			seedRandom.nextLong();
+		}
+		return new Random(seedRandom.nextLong());
 	}
 
 }
