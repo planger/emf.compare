@@ -13,9 +13,7 @@ package org.eclipse.emf.compare.tests.suite;
 import junit.framework.JUnit4TestAdapter;
 import junit.framework.Test;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.eclipse.emf.compare.tests.AllFuzzyTests;
 
 /**
  * This class will be used to cover all of our OSGi-dependant tests (anything that needs be run as
@@ -24,7 +22,6 @@ import org.junit.runners.Suite.SuiteClasses;
  * 
  * @author <a href="mailto:laurent.goubet@obeo.fr">Laurent Goubet</a>
  */
-@RunWith(Suite.class)
 public class AllPluginTests {
 	/**
 	 * This will return a suite populated with all tests available through this class.
@@ -32,6 +29,6 @@ public class AllPluginTests {
 	 * @generated
 	 */
 	public static Test suite() {
-		return new JUnit4TestAdapter(CompareTestSuite.class);
+		return new JUnit4TestAdapter(AllFuzzyTests.class);
 	}
 }

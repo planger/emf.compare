@@ -31,11 +31,15 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.Data;
+import org.eclipse.emf.emfstore.fuzzy.Annotations.DataProvider;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.Util;
+import org.eclipse.emf.emfstore.fuzzy.ESFuzzyRunner;
+import org.eclipse.emf.emfstore.fuzzy.emf.ESEMFDataProvider;
 import org.eclipse.emf.emfstore.fuzzy.emf.ESMutateUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.google.common.collect.Sets;
 
@@ -55,6 +59,8 @@ import com.google.common.collect.Sets;
  * 
  * @author Philip Langer <planger@eclipsesource.com>
  */
+@RunWith(ESFuzzyRunner.class)
+@DataProvider(ESEMFDataProvider.class)
 public class TwoWayFuzzyTest {
 
 	private enum MergeDirection {
