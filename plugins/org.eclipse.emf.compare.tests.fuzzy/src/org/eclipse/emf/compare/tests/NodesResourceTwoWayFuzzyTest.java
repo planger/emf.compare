@@ -13,7 +13,7 @@ package org.eclipse.emf.compare.tests;
 import org.eclipse.emf.compare.tests.nodes.NodesPackage;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.DataProvider;
 import org.eclipse.emf.emfstore.fuzzy.FuzzyRunner;
-import org.eclipse.emf.emfstore.fuzzy.emf.EMFDataProvider;
+import org.eclipse.emf.emfstore.fuzzy.emf.ESEMFDataProvider;
 import org.junit.runner.RunWith;
 
 /**
@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
  * @author Philip Langer <planger@eclipsesource.com>
  */
 @RunWith(FuzzyRunner.class)
-@DataProvider(EMFDataProvider.class)
+@DataProvider(ESEMFDataProvider.class)
 public class NodesResourceTwoWayFuzzyTest extends ResourceTwoWayFuzzyTest {
 
 }

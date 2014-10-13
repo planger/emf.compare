@@ -32,7 +32,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.Data;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.Util;
-import org.eclipse.emf.emfstore.fuzzy.emf.MutateUtil;
+import org.eclipse.emf.emfstore.fuzzy.emf.ESMutateUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,7 +83,7 @@ public class TwoWayFuzzyTest {
 	protected EObject generatedRootObject;
 
 	@Util
-	protected MutateUtil mutateUtil;
+	protected ESMutateUtil mutateUtil;
 
 	private EObject leftRootObject;
 
