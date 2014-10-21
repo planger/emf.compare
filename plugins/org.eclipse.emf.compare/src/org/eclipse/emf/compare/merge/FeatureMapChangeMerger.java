@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Obeo.
+ * Copyright (c) 2014 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Alexandra Buzila - Fixes for bug 446252
  *******************************************************************************/
 package org.eclipse.emf.compare.merge;
 
@@ -376,23 +377,19 @@ public class FeatureMapChangeMerger extends AbstractMerger {
 			// There is a ReferenceChange associated with the FeatureMapChange. This ReferenceChange
 			// contains the expected value to move.
 			for (ReferenceChange equivalence : Iterables.filter(equ.getDifferences(), ReferenceChange.class)) {
-				final EObject oldContainer;
+
 				final Match equivalenceMatchValue = comparison.getMatch(equivalence.getValue());
+
+				Object expectedEntryValue = null;
 				if (rightToLeft) {
-					oldContainer = equivalenceMatchValue.getLeft().eContainer();
+					expectedEntryValue = equivalenceMatchValue.getLeft();
 				} else {
-					oldContainer = equivalenceMatchValue.getRight().eContainer();
+					expectedEntryValue = equivalenceMatchValue.getRight();
 				}
-				final List<Object> originList = (List<Object>)safeEGet(oldContainer, diff.getAttribute());
-				for (Object entry : originList) {
-					if (entry instanceof FeatureMap.Entry
-							&& equalityHelper.matchingValues(diffEntry.getValue(), ((FeatureMap.Entry)entry)
-									.getValue())) {
-						expectedEntry = FeatureMapUtil.createEntry(diffEntry.getEStructuralFeature(),
-								((FeatureMap.Entry)entry).getValue());
-						break;
-					}
-				}
+
+				expectedEntry = FeatureMapUtil.createEntry(diffEntry.getEStructuralFeature(),
+						expectedEntryValue);
+
 				break;
 			}
 		} else {
@@ -419,7 +416,7 @@ public class FeatureMapChangeMerger extends AbstractMerger {
 	@SuppressWarnings("unchecked")
 	private FeatureMap.Entry getExpectedEntryWhenDiffSourceIsMergeTarget(final Comparison comparison,
 			final FeatureMapChange diff) {
-		final FeatureMap.Entry expectedEntry;
+		FeatureMap.Entry expectedEntry = null;
 		final IEqualityHelper equalityHelper = comparison.getEqualityHelper();
 		final FeatureMap.Entry diffEntry = (FeatureMap.Entry)diff.getValue();
 		if (comparison.isThreeWay() && isFeatureMapContainment(diff)) {
@@ -439,7 +436,22 @@ public class FeatureMapChangeMerger extends AbstractMerger {
 			}
 			expectedEntry = FeatureMapUtil.createEntry(originKey, diffEntry.getValue());
 		} else {
-			expectedEntry = diffEntry;
+			if (((EReference)diffEntry.getEStructuralFeature()).isContainment()) {
+				// find target reference
+				final Match equivalenceMatchValue = comparison.getMatch((EObject)diffEntry.getValue());
+				EObject targetValue;
+				if (diff.getSource() == DifferenceSource.LEFT) {
+					targetValue = equivalenceMatchValue.getRight();
+				} else {
+					targetValue = equivalenceMatchValue.getLeft();
+				}
+				EStructuralFeature targetReference = targetValue.eContainingFeature();
+
+				expectedEntry = FeatureMapUtil.createEntry(targetReference, diffEntry.getValue());
+			} else {
+				expectedEntry = diffEntry;
+			}
+
 		}
 		return expectedEntry;
 	}
@@ -492,7 +504,7 @@ public class FeatureMapChangeMerger extends AbstractMerger {
 			}
 
 			if (currentIndex == -1) {
-				if (insertionIndex < 0 && insertionIndex > targetList.size()) {
+				if (insertionIndex < 0 || insertionIndex > targetList.size()) {
 					((BasicFeatureMap)(Object)targetList).addUnique(expectedValue);
 				} else {
 					((BasicFeatureMap)(Object)targetList).addUnique(insertionIndex, expectedValue);

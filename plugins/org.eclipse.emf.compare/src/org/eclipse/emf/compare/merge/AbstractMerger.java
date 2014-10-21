@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Obeo.
+ * Copyright (c) 2012, 2014 Obeo and others. 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Alexandra Buzila - Fixes for Bug 446252
  *******************************************************************************/
 package org.eclipse.emf.compare.merge;
 
@@ -31,6 +32,7 @@ import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.DifferenceSource;
 import org.eclipse.emf.compare.DifferenceState;
+import org.eclipse.emf.compare.FeatureMapChange;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.compare.utils.EMFCompareCopier;
 import org.eclipse.emf.ecore.EObject;
@@ -497,6 +499,13 @@ public abstract class AbstractMerger implements IMerger2 {
 						continueMerge = false;
 					}
 				}
+			}
+
+			// in the case of a ReferenceChange-FeatureMapChange equivalence, the FeatureMapChange is
+			// preferred to the ReferenceChange - cf. Bug 446252
+			if (ReferenceChange.class.isInstance(diff) && FeatureMapChange.class.isInstance(equivalent)) {
+				mergeDiff(equivalent, rightToLeft, monitor);
+				continueMerge = false;
 			}
 
 			/*
