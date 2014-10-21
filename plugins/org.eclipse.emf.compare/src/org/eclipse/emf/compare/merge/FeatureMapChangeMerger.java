@@ -380,7 +380,7 @@ public class FeatureMapChangeMerger extends AbstractMerger {
 
 				final Match equivalenceMatchValue = comparison.getMatch(equivalence.getValue());
 
-				Object expectedEntryValue = null;
+				final Object expectedEntryValue;
 				if (rightToLeft) {
 					expectedEntryValue = equivalenceMatchValue.getLeft();
 				} else {
@@ -416,7 +416,7 @@ public class FeatureMapChangeMerger extends AbstractMerger {
 	@SuppressWarnings("unchecked")
 	private FeatureMap.Entry getExpectedEntryWhenDiffSourceIsMergeTarget(final Comparison comparison,
 			final FeatureMapChange diff) {
-		FeatureMap.Entry expectedEntry = null;
+		final FeatureMap.Entry expectedEntry;
 		final IEqualityHelper equalityHelper = comparison.getEqualityHelper();
 		final FeatureMap.Entry diffEntry = (FeatureMap.Entry)diff.getValue();
 		if (comparison.isThreeWay() && isFeatureMapContainment(diff)) {
@@ -439,7 +439,7 @@ public class FeatureMapChangeMerger extends AbstractMerger {
 			if (((EReference)diffEntry.getEStructuralFeature()).isContainment()) {
 				// find target reference
 				final Match equivalenceMatchValue = comparison.getMatch((EObject)diffEntry.getValue());
-				EObject targetValue;
+				final EObject targetValue;
 				if (diff.getSource() == DifferenceSource.LEFT) {
 					targetValue = equivalenceMatchValue.getRight();
 				} else {
