@@ -36,6 +36,10 @@ public class ComparisonScopeInput implements ICompareInput {
 
 	private final ListenerList listeners;
 
+	private boolean leftEditable = true;
+
+	private boolean rightEditable = true;
+
 	public ComparisonScopeInput(IComparisonScope scope, AdapterFactory adapterFactory) {
 		this.scope = scope;
 		this.adapterFactory = adapterFactory;
@@ -134,6 +138,22 @@ public class ComparisonScopeInput implements ICompareInput {
 			return null;
 		}
 		return AccessorAdapter.adapt(new TypedNotifier(adapterFactory, scope.getRight()));
+	}
+
+	public void setLeftEditable(boolean leftEditable) {
+		this.leftEditable = leftEditable;
+	}
+
+	public void setRightEditable(boolean rightEditable) {
+		this.rightEditable = rightEditable;
+	}
+
+	public boolean isLeftEditable() {
+		return leftEditable;
+	}
+
+	public boolean isRightEditable() {
+		return rightEditable;
 	}
 
 	/**

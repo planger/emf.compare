@@ -12,6 +12,7 @@ package org.eclipse.emf.compare.ide.ui.internal.logical;
 
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.team.core.mapping.IResourceMappingMerger;
+import org.eclipse.team.ui.mapping.ISynchronizationCompareAdapter;
 
 /**
  * Provides adapters for the {@link EMFModelProvider}.
@@ -23,14 +24,17 @@ import org.eclipse.team.core.mapping.IResourceMappingMerger;
 public class EMFLogicalModelAdapterFactory implements IAdapterFactory {
 	/** {@inheritDoc} */
 	public Object getAdapter(Object adaptableObject, Class adapterType) {
+		Object adapter = null;
 		if (adapterType == IResourceMappingMerger.class) {
-			return new EMFResourceMappingMerger();
+			adapter = new EMFResourceMappingMerger();
+		} else if (adapterType == ISynchronizationCompareAdapter.class) {
+			adapter = new EMFSynchronizationCompareAdapter();
 		}
-		return null;
+		return adapter;
 	}
 
 	/** {@inheritDoc} */
 	public Class[] getAdapterList() {
-		return new Class[] {IResourceMappingMerger.class, };
+		return new Class[] {IResourceMappingMerger.class, ISynchronizationCompareAdapter.class, };
 	}
 }
