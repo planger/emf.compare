@@ -10,7 +10,9 @@
  *******************************************************************************/
 package org.eclipse.emf.compare.tests;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -29,6 +31,7 @@ import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.Data;
 import org.eclipse.emf.emfstore.fuzzy.Annotations.DataProvider;
@@ -248,6 +251,30 @@ public class TwoWayFuzzyTest {
 				while (crossReferences.hasNext()) {
 					if (!noDupes.add(crossReferences.next())) {
 						crossReferences.remove();
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Since the ModelMutator might leave the model in an invalid state, especially regarding references to
+	 * deleted elements, this method can be used to clean up the model
+	 * 
+	 * @param contentRoot
+	 *            The root of the model
+	 */
+	protected void removeAllInvalidReferences(EObject contentRoot) {
+		Set<EObject> allObjects = new HashSet<EObject>();
+		for (Iterator<EObject> it = EcoreUtil.getAllProperContents(contentRoot, true); it.hasNext();) {
+			allObjects.add(it.next());
+		}
+
+		for (EObject object : allObjects) {
+			for (EObject reference : new ArrayList<EObject>(object.eCrossReferences())) {
+				if (!allObjects.contains(reference)) {
+					for (EStructuralFeature feat : object.eClass().getEAllStructuralFeatures()) {
+						EcoreUtil.remove(object, feat, reference);
 					}
 				}
 			}

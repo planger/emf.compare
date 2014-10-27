@@ -100,6 +100,7 @@ public class ResourceTwoWayFuzzyTest extends TwoWayFuzzyTest {
 		rightResource.getContents().add(generatedRootObject);
 		mutateUtil.mutate();
 		removeAllDuplicateCrossReferences(generatedRootObject);
+		removeAllInvalidReferences(generatedRootObject);
 		rightResource.save(SAVE_OPTIONS);
 	}
 
