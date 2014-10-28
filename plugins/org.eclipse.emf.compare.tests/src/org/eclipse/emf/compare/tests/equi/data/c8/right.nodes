@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nodes:Node
+    xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:nodes="http://www.eclipse.org/emf/compare/tests/nodes"
+    xmi:id="_root"
+    name="Root">
+  <containmentRef1 xsi:type="nodes:NodeSingleValueContainment" xmi:id="_a"/>
+  <containmentRef1 xsi:type="nodes:NodeOppositeRefOneToOne" xmi:id="_b" name="b_right" source="_e"/>
+  <containmentRef1 xsi:type="nodes:Node" xmi:id="_d" name="d_right"/>
+  <containmentRef1 xsi:type="nodes:NodeOppositeRefOneToOne" xmi:id="_e" destination="_b"/>
+  <containmentRef1 xsi:type="nodes:NodeOppositeRefOneToMany" xmi:id="_f" name="f_right" source="_f" destination="_f"/>
+</nodes:Node>
