@@ -12,9 +12,11 @@
 package org.eclipse.emf.compare.merge;
 
 import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.or;
 import static com.google.common.collect.Iterables.any;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.fromSide;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.hasConflict;
+import static org.eclipse.emf.compare.utils.EMFComparePredicates.hasSameReferenceAs;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.isDiffOnEOppositeOf;
 
 import com.google.common.base.Optional;
@@ -217,14 +219,13 @@ public abstract class AbstractMerger implements IMerger2 {
 		Diff masterDiff = null;
 		if (diff instanceof ReferenceChange) {
 			final ReferenceChange diffRC = (ReferenceChange)diff;
-			final Iterator<Diff> eOppositeDiffs = Iterators.filter(equivalentDiffs.iterator(),
-					isDiffOnEOppositeOf(diffRC));
-			while (masterDiff == null && eOppositeDiffs.hasNext()) {
-				final ReferenceChange candidate = (ReferenceChange)eOppositeDiffs.next();
-				if (isOneToManyAndAdd(diffRC, candidate, mergeRightToLeft)) {
+			final Iterator<Diff> candidateDiffs = Iterators.filter(equivalentDiffs.iterator(), or(
+					isDiffOnEOppositeOf(diffRC), hasSameReferenceAs(diffRC)));
+			while (masterDiff == null && candidateDiffs.hasNext()) {
+				final ReferenceChange candidate = (ReferenceChange)candidateDiffs.next();
+				if (isOneToManyAndAdd(candidate, mergeRightToLeft)) {
 					masterDiff = candidate;
-				} else if (!isSet(diffRC, mergeRightToLeft)
-						&& isOneToOneAndSet(diffRC, candidate, mergeRightToLeft)) {
+				} else if (!isSet(diffRC, mergeRightToLeft) && isOneToOneAndSet(candidate, mergeRightToLeft)) {
 					masterDiff = candidate;
 				}
 			}
@@ -233,12 +234,9 @@ public abstract class AbstractMerger implements IMerger2 {
 	}
 
 	/**
-	 * Specifies whether the given reference changes, {@code diff} and {@code equivalent}, affect references
-	 * constituting an one-to-many relationship and whether {@code equivalent} is an addition in the current
-	 * merging.
+	 * Specifies whether {@code equivalent} affects references constituting an one-to-many relationship and
+	 * whether {@code equivalent} is an addition in the current merging.
 	 *
-	 * @param diff
-	 *            The difference to check. One-side of the relation.
 	 * @param equivalent
 	 *            The equivalent to the {@code diff}. Many-side of the relation.
 	 * @param mergeRightToLeft
@@ -246,18 +244,23 @@ public abstract class AbstractMerger implements IMerger2 {
 	 * @return <code>true</code> if {@code diff} and {@code equivalent} are one-to-many eOpposites with
 	 *         {@code equivalent} resulting in an Add-operation, <code>false</code> otherwise.
 	 */
-	private boolean isOneToManyAndAdd(ReferenceChange diff, ReferenceChange equivalent,
-			boolean mergeRightToLeft) {
-		return !diff.getReference().isMany() && equivalent.getReference().isMany()
-				&& isAdd(equivalent, mergeRightToLeft);
+	private boolean isOneToManyAndAdd(ReferenceChange equivalent, boolean mergeRightToLeft) {
+		if (equivalent.getReference().getEOpposite() == null) {
+			return false;
+		}
+
+		boolean isOneToMany = equivalent.getReference().isMany()
+				&& !equivalent.getReference().getEOpposite().isMany();
+		boolean isManyToOne = !equivalent.getReference().isMany()
+				&& equivalent.getReference().getEOpposite().isMany();
+
+		return (isOneToMany || isManyToOne) && isAdd(equivalent, mergeRightToLeft);
 	}
 
 	/**
-	 * Specifies whether the given reference changes, {@code diff} and {@code equivalent}, affect references
-	 * constituting an one-to-one relationship and whether {@code equivalent} is a set in the current merging.
+	 * Specifies whether {@code equivalent} affects references constituting an one-to-one relationship and
+	 * whether {@code equivalent} is a set in the current merging.
 	 *
-	 * @param diff
-	 *            The difference to check.
 	 * @param equivalent
 	 *            The equivalent to the {@code diff}.
 	 * @param mergeRightToLeft
@@ -265,9 +268,11 @@ public abstract class AbstractMerger implements IMerger2 {
 	 * @return <code>true</code> if {@code diff} and {@code equivalent} are one-to-many eOpposites with
 	 *         {@code equivalent} resulting in an Add-operation, <code>false</code> otherwise.
 	 */
-	private boolean isOneToOneAndSet(ReferenceChange diff, ReferenceChange equivalent,
-			boolean mergeRightToLeft) {
-		return !diff.getReference().isMany() && !equivalent.getReference().isMany()
+	private boolean isOneToOneAndSet(ReferenceChange equivalent, boolean mergeRightToLeft) {
+		if (equivalent.getReference().getEOpposite() == null) {
+			return false;
+		}
+		return !equivalent.getReference().isMany() && !equivalent.getReference().getEOpposite().isMany()
 				&& isSet(equivalent, mergeRightToLeft);
 	}
 
@@ -616,12 +621,13 @@ public abstract class AbstractMerger implements IMerger2 {
 				final ReferenceChange diffRC = (ReferenceChange)diff;
 				final ReferenceChange equivalentRC = (ReferenceChange)equivalent;
 
-				if (diffRC.getReference().getEOpposite() == equivalentRC.getReference()
+				if ((diffRC.getReference().getEOpposite() == equivalentRC.getReference() || diffRC
+						.getReference() == equivalentRC.getReference())
 						&& equivalent.getState() == DifferenceState.UNRESOLVED) {
 
 					// This equivalence is on our eOpposite. Should we merge it instead of 'this'?
-					final boolean mergeEquivalence = isOneToManyAndAdd(diffRC, equivalentRC, rightToLeft)
-							|| isOneToOneAndSet(diffRC, equivalentRC, rightToLeft);
+					final boolean mergeEquivalence = isOneToManyAndAdd(equivalentRC, rightToLeft)
+							|| isOneToOneAndSet(equivalentRC, rightToLeft);
 
 					if (mergeEquivalence) {
 						mergeDiff(equivalent, rightToLeft, monitor);

@@ -275,6 +275,24 @@ public final class EMFComparePredicates {
 	}
 
 	/**
+	 * This predicate can be used to check whether a given Diff is a {@link ReferenceChange} with the same
+	 * reference as the {@code diff} argument.
+	 *
+	 * @param diff
+	 *            The {@link ReferenceChange} against which is checked if it has the same reference.
+	 * @return The created predicate.
+	 * @since 3.2
+	 */
+	public static Predicate<Diff> hasSameReferenceAs(final ReferenceChange diff) {
+		return new Predicate<Diff>() {
+			public boolean apply(Diff input) {
+				return input instanceof ReferenceChange
+						&& diff.getReference() == ((ReferenceChange)input).getReference();
+			}
+		};
+	}
+
+	/**
 	 * This predicate can be used to check whether a given Diff represents the deletion of a value from a
 	 * multi-valued attribute going by {@code attributeName} on an EObject which name matches
 	 * {@code qualifiedName}.
