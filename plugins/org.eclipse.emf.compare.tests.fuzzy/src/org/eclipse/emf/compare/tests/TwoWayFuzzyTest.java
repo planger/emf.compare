@@ -33,12 +33,12 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.emf.emfstore.fuzzy.Annotations.Data;
-import org.eclipse.emf.emfstore.fuzzy.Annotations.DataProvider;
-import org.eclipse.emf.emfstore.fuzzy.Annotations.Util;
-import org.eclipse.emf.emfstore.fuzzy.ESFuzzyRunner;
 import org.eclipse.emf.emfstore.fuzzy.emf.ESEMFDataProvider;
 import org.eclipse.emf.emfstore.fuzzy.emf.ESMutateUtil;
+import org.eclipse.emf.emfstore.fuzzy.emf.junit.Annotations.Data;
+import org.eclipse.emf.emfstore.fuzzy.emf.junit.Annotations.DataProvider;
+import org.eclipse.emf.emfstore.fuzzy.emf.junit.Annotations.Util;
+import org.eclipse.emf.emfstore.fuzzy.emf.junit.ESFuzzyRunner;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,11 +66,11 @@ import com.google.common.collect.Sets;
 @DataProvider(ESEMFDataProvider.class)
 public class TwoWayFuzzyTest {
 
-	private enum MergeDirection {
+	public enum MergeDirection {
 		LEFT_TO_RIGHT, RIGHT_TO_LEFT;
 	}
 
-	protected class TwoWayMergeData {
+	public class TwoWayMergeData {
 
 		protected Notifier left;
 
@@ -94,13 +94,13 @@ public class TwoWayFuzzyTest {
 	@Util
 	protected ESMutateUtil mutateUtil;
 
-	private EObject leftRootObject;
+	protected EObject leftRootObject;
 
-	private EObject rightRootObject;
+	protected EObject rightRootObject;
 
-	private EObject leftWorkingRootObject;
+	protected EObject leftWorkingRootObject;
 
-	private EObject rightWorkingRootObject;
+	protected EObject rightWorkingRootObject;
 
 	@Before
 	public void prepareTwoVersions() {
@@ -121,7 +121,7 @@ public class TwoWayFuzzyTest {
 		saveRightRootObject(generatedRootObject);
 	}
 
-	private void saveLeftRootObject(EObject eObject) {
+	protected void saveLeftRootObject(EObject eObject) {
 		this.leftRootObject = EcoreUtil.copy(eObject);
 	}
 
@@ -129,11 +129,11 @@ public class TwoWayFuzzyTest {
 		this.rightRootObject = EcoreUtil.copy(eObject);
 	}
 
-	private void saveLeftWorkingRootObject() {
+	protected void saveLeftWorkingRootObject() {
 		this.leftWorkingRootObject = EcoreUtil.copy(leftRootObject);
 	}
 
-	private void saveRightWorkingRootObject() {
+	protected void saveRightWorkingRootObject() {
 		this.rightWorkingRootObject = EcoreUtil.copy(rightRootObject);
 	}
 
@@ -169,12 +169,12 @@ public class TwoWayFuzzyTest {
 		performBatchMergeAndEqualityCheckTest(new TwoWayMergeData(left, right, direction));
 	}
 
-	private void performBatchMergeAndEqualityCheckTest(TwoWayMergeData data) {
+	protected void performBatchMergeAndEqualityCheckTest(TwoWayMergeData data) {
 		EList<Diff> diffs = mergeAndRecompare(data);
 		assertNoDifferencesAndPrintDebugInfo(data, diffs);
 	}
 
-	private EList<Diff> mergeAndRecompare(TwoWayMergeData data) {
+	protected EList<Diff> mergeAndRecompare(TwoWayMergeData data) {
 		// perform comparison
 		final IComparisonScope scope = new DefaultComparisonScope(data.left, data.right, null);
 		Comparison comparison = EMFCompare.builder().build().compare(scope);
