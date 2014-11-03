@@ -113,6 +113,14 @@ public class EquiInputData extends AbstractInputData {
 		return loadFromClassLoader("c7/right.nodes"); //$NON-NLS-1$
 	}
 
+	public Resource getC8Left() throws IOException {
+		return loadFromClassLoader("c8/left.nodes"); //$NON-NLS-1$
+	}
+
+	public Resource getC8Right() throws IOException {
+		return loadFromClassLoader("c8/right.nodes"); //$NON-NLS-1$
+	}
+
 	public Resource getD1Left() throws IOException {
 		return loadFromClassLoader("d1/left.nodes"); //$NON-NLS-1$
 	}

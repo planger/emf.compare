@@ -32,6 +32,7 @@ import com.google.common.collect.Iterators;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.compare.Comparison;
@@ -1195,6 +1196,32 @@ public class MultipleMergeTest {
 			if (diff != deleteDiff) {
 				mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
 			}
+		}
+
+		// check if no differences between models are left
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testEquivalenceC8LtoR() throws IOException {
+		final Resource left = equivalenceInput.getC8Left();
+		final Resource right = equivalenceInput.getC8Right();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+
+		int index = 2;
+		Random random = new Random(1);
+		for (int i = 0; i < index; i++) {
+			random.nextLong();
+		}
+		Collections.shuffle(differences, new Random(random.nextLong()));
+
+		for (Diff diff : differences) {
+			mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
 		}
 
 		// check if no differences between models are left
