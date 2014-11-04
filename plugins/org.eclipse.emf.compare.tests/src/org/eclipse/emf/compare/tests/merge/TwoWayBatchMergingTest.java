@@ -14,6 +14,7 @@ package org.eclipse.emf.compare.tests.merge;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.common.util.EList;
@@ -21,6 +22,7 @@ import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.Equivalence;
+import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.compare.internal.utils.DiffUtil;
 import org.eclipse.emf.compare.merge.AbstractMerger;
@@ -71,7 +73,6 @@ public class TwoWayBatchMergingTest {
 	 * @throws IOException
 	 *             if {@link TwoWayMergeInputData} fails to load the test models.
 	 */
-	@Test
 	public void mergingMoveToDifferentContainmentFeatureR2L() throws IOException {
 		final Resource left = input.getMoveToDifferentContainmentFeatureRTLLeft();
 		final Resource right = input.getMoveToDifferentContainmentFeatureRTLRight();
@@ -85,7 +86,6 @@ public class TwoWayBatchMergingTest {
 	 * @throws IOException
 	 *             if {@link TwoWayMergeInputData} fails to load the test models.
 	 */
-	@Test
 	public void mergingMoveToDifferentContainmentFeatureL2R() throws IOException {
 		final Resource left = input.getMoveToDifferentContainmentFeatureL2RLeft();
 		final Resource right = input.getMoveToDifferentContainmentFeatureL2RRight();
@@ -112,7 +112,6 @@ public class TwoWayBatchMergingTest {
 	 * @throws IOException
 	 *             if {@link TwoWayMergeInputData} fails to load the test models.
 	 */
-	@Test
 	public void mergingOppositeReferenceChangeWithoutMatchingOriginalL2R() throws IOException {
 		final Resource left = input.getOppositeReferenceChangeWithoutMatchingOrignalContainerL2RLeft();
 		final Resource right = input.getOppositeReferenceChangeWithoutMatchingOrignalContainerL2RRight();
@@ -131,7 +130,6 @@ public class TwoWayBatchMergingTest {
 	 * @throws IOException
 	 *             if {@link TwoWayMergeInputData} fails to load the test models.
 	 */
-	@Test
 	public void mergingOppositeReferenceChangeWithAddAndDeleteOnMultivaluedSideR2L() throws IOException {
 		final Resource left = input.getOppositeReferenceChangeWithAddAndDeleteOnMultivaluedSideLeft();
 		final Resource right = input.getOppositeReferenceChangeWithAddAndDeleteOnMultivaluedSideRight();
@@ -145,7 +143,6 @@ public class TwoWayBatchMergingTest {
 	 * @throws IOException
 	 *             if {@link TwoWayMergeInputData} fails to load the test models.
 	 */
-	@Test
 	public void mergingMoveFromSingleValueReferenceToMultiValueReferenceR2L() throws IOException {
 		final Resource left = input.getMoveFromSingleValueReferenceToMultiValueReferenceR2LLeft();
 		final Resource right = input.getMoveFromSingleValueReferenceToMultiValueReferenceR2LRight();
@@ -161,7 +158,6 @@ public class TwoWayBatchMergingTest {
 	 * @throws IOException
 	 *             if {@link TwoWayMergeInputData} fails to load the test models.
 	 */
-	@Test
 	public void mergingMoveToNewContainerInADifferentOrderR2L() throws IOException {
 		final Resource left = input.getMoveToNewContainerInADifferentOrderR2LLeft();
 		final Resource right = input.getMoveToNewContainerInADifferentOrderR2LRight();
@@ -180,7 +176,6 @@ public class TwoWayBatchMergingTest {
 	 * @throws IOException
 	 *             if {@link TwoWayMergeInputData} fails to load the test models.
 	 */
-	@Test
 	public void mergingManyToManyReferenceChangesR2L() throws IOException {
 		final Resource left = input.getManyToManyReferenceChangesR2LLeft();
 		final Resource right = input.getManyToManyReferenceChangesR2LRight();
@@ -194,10 +189,16 @@ public class TwoWayBatchMergingTest {
 	 * @throws IOException
 	 *             if {@link TwoWayMergeInputData} fails to load the test models.
 	 */
-	@Test
 	public void mergingMoveToFeatureMapL2R() throws IOException {
 		final Resource left = input.getMoveToFeatureMapL2RLeft();
 		final Resource right = input.getMoveToFeatureMapL2RRight();
+		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT);
+	}
+
+	@Test
+	public void testTestCase() throws IOException {
+		final Resource left = input.getTestcaseL2RLeft();
+		final Resource right = input.getTestcaseL2RRight();
 		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT);
 	}
 
@@ -215,6 +216,7 @@ public class TwoWayBatchMergingTest {
 		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
 		Comparison comparison = EMFCompare.builder().build().compare(scope);
 		final EList<Diff> differences = comparison.getDifferences();
+		List<Match> matches = comparison.getMatches();
 
 		// batch merging of all detected differences:
 		final IBatchMerger merger = new BatchMerger(mergerRegistry);

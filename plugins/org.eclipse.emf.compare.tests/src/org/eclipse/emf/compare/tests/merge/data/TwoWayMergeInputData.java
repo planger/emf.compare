@@ -81,4 +81,12 @@ public class TwoWayMergeInputData extends AbstractInputData {
 	public Resource getMoveToFeatureMapL2RRight() throws IOException {
 		return loadFromClassLoader("twoway/movetofeaturemap/ltr/right.nodes");
 	}
+
+	public Resource getTestcaseL2RLeft() throws IOException {
+		return loadFromClassLoader("twoway/mytestcases/ltr/left.nodes");
+	}
+
+	public Resource getTestcaseL2RRight() throws IOException {
+		return loadFromClassLoader("twoway/mytestcases/ltr/right.nodes");
+	}
 }
