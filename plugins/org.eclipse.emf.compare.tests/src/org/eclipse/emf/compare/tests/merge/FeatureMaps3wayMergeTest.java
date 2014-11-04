@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Obeo.
+ * Copyright (c) 2014 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Alexandra Buzila - Fixes for bug 446252
  *******************************************************************************/
 package org.eclipse.emf.compare.tests.merge;
 
@@ -819,7 +820,9 @@ public class FeatureMaps3wayMergeTest {
 		assertTrue(((BasicFeatureMap)map).basicContains(eSFFirstKey, rightNode1));
 
 		comparison = EMFCompare.builder().build().compare(scope);
-		assertEquals(4, comparison.getDifferences().size());
+		// after the diff from the right side and it's equivalent have been correctly merged, we should have
+		// two more equivalent differences on the left side
+		assertEquals(2, comparison.getDifferences().size());
 	}
 
 	@Test
@@ -999,7 +1002,8 @@ public class FeatureMaps3wayMergeTest {
 		assertTrue(((BasicFeatureMap)map).basicContains(eSFFirstKey, rightNode1));
 
 		comparison = EMFCompare.builder().build().compare(scope);
-		assertEquals(4, comparison.getDifferences().size());
+		// after correctly merging one change and it's equivalent diff, we should have 2 more differences left
+		assertEquals(2, comparison.getDifferences().size());
 	}
 
 	@Test
@@ -1044,7 +1048,8 @@ public class FeatureMaps3wayMergeTest {
 		assertTrue(((BasicFeatureMap)map).basicContains(eSFFirstKey, rightNode1));
 
 		comparison = EMFCompare.builder().build().compare(scope);
-		assertEquals(4, comparison.getDifferences().size());
+		// after correctly merging one change and it's equivalent diff, we should have 2 more differences left
+		assertEquals(2, comparison.getDifferences().size());
 	}
 
 	@Test
@@ -1502,7 +1507,8 @@ public class FeatureMaps3wayMergeTest {
 		assertTrue(((BasicFeatureMap)map).basicContains(eSFFirstKey, rightNode1));
 
 		comparison = EMFCompare.builder().build().compare(scope);
-		assertEquals(4, comparison.getDifferences().size());
+		// after correctly merging one diff and it's equivalent, we should have 2 equivalent differences left
+		assertEquals(2, comparison.getDifferences().size());
 	}
 
 	@Test

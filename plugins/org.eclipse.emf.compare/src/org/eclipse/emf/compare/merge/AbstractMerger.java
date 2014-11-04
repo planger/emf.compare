@@ -8,18 +8,18 @@
  * Contributors:
  *     Obeo - initial API and implementation
  *     Stefan Dirix - bug 441172
+ *     Alexandra Buzila - Fixes for Bug 446252
  *******************************************************************************/
 package org.eclipse.emf.compare.merge;
 
 import static com.google.common.base.Predicates.in;
-import static com.google.common.base.Predicates.or;
 import static com.google.common.collect.Iterables.any;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.fromSide;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.hasConflict;
-import static org.eclipse.emf.compare.utils.EMFComparePredicates.hasSameReferenceAs;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.isDiffOnEOppositeOf;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
@@ -35,6 +35,7 @@ import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.DifferenceSource;
 import org.eclipse.emf.compare.DifferenceState;
+import org.eclipse.emf.compare.FeatureMapChange;
 import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.compare.utils.EMFCompareCopier;
@@ -185,7 +186,7 @@ public abstract class AbstractMerger implements IMerger2 {
 	 * Even within 'equivalent' differences, there might be one that we need to consider as the "master", one
 	 * part of the equivalence that should take precedence over the others when merging.
 	 * <p>
-	 * There are three main cases in which this happens :
+	 * There are four main cases in which this happens :
 	 * <ol>
 	 * <li>Equivalent differences regarding two "eOpposite" sides, with one side being a single-valued
 	 * reference while the other side is a multi-valued reference (one-to-many). In such a case, we need the
@@ -199,6 +200,10 @@ public abstract class AbstractMerger implements IMerger2 {
 	 * in conflict while the others are not, then none of the equivalent differences can be automatically
 	 * merged. We need to consider the conflict to be taking precedence over the others to make sure that the
 	 * conflict is resolved before even trying to merge anything.</li>
+	 * <li>Equivalent {@link ReferenceChange} and {@link FeatureMapChange} differences: in this case the
+	 * {@link FeatureMapChange} difference will take precedence over the {@link ReferenceChange}. This happens
+	 * in order to prevent special cases in which the {@link ReferenceChangeMerger} cannot ensure the correct
+	 * order of the feature map attribute.</li>
 	 * </ol>
 	 * </p>
 	 * 
@@ -209,34 +214,87 @@ public abstract class AbstractMerger implements IMerger2 {
 	 * @return The master difference of this equivalence relation. May be <code>null</code> if there are none.
 	 */
 	private Diff findMasterEquivalence(Diff diff, boolean mergeRightToLeft) {
+		final Diff masterDiff;
 		final List<Diff> equivalentDiffs = diff.getEquivalence().getDifferences();
 		final Optional<Diff> firstConflicting = Iterables.tryFind(equivalentDiffs,
 				hasConflict(ConflictKind.REAL));
 		if (firstConflicting.isPresent()) {
-			return firstConflicting.get();
+			masterDiff = firstConflicting.get();
+		} else if (diff instanceof ReferenceChange) {
+			final ReferenceChange referenceChange = (ReferenceChange)diff;
+			masterDiff = getMasterEquivalenceForReferenceChange(referenceChange, mergeRightToLeft);
+		} else {
+			masterDiff = null;
 		}
+		return masterDiff;
+	}
 
+	/**
+	 * Returns the master equivalence for a {@link ReferenceChange}.
+	 * 
+	 * @see AbstractMerger#findMasterEquivalence(Diff, boolean)
+	 * @param diff
+	 *            The {@link Diff} we need to check the equivalence for a 'master' difference.
+	 * @param mergeRightToLeft
+	 *            Direction of the current merging.
+	 * @return The master difference of {@code diff} and its equivalent diffs. This method may return
+	 *         <code>null</code> if there is no master diff.
+	 */
+	private Diff getMasterEquivalenceForReferenceChange(ReferenceChange diff, boolean mergeRightToLeft) {
+		Diff masterDiff = getMasterEquivalenceOnEOpposite(diff, mergeRightToLeft);
+		if (masterDiff == null) {
+			masterDiff = getMasterEquivalenceFeatureMap(diff);
+		}
+		return masterDiff;
+	}
+
+	/**
+	 * Returns the master equivalence for a {@link ReferenceChange} from among its {@code eOpposites}.
+	 * 
+	 * @see AbstractMerger#findMasterEquivalence(Diff, boolean)
+	 * @param diff
+	 *            The {@link Diff} we need to check the equivalence for a 'master' difference.
+	 * @param mergeRightToLeft
+	 *            Direction of the current merging.
+	 * @return The master difference of {@code diff} and its equivalent diffs. This method may return
+	 *         <code>null</code> if there is no master diff.
+	 */
+	private Diff getMasterEquivalenceOnEOpposite(ReferenceChange diff, boolean mergeRightToLeft) {
 		Diff masterDiff = null;
-		if (diff instanceof ReferenceChange) {
-			final ReferenceChange diffRC = (ReferenceChange)diff;
-			final Iterator<Diff> candidateDiffs = Iterators.filter(equivalentDiffs.iterator(), or(
-					isDiffOnEOppositeOf(diffRC), hasSameReferenceAs(diffRC)));
-			while (masterDiff == null && candidateDiffs.hasNext()) {
-				final ReferenceChange candidate = (ReferenceChange)candidateDiffs.next();
-				if (isOneToManyAndAdd(candidate, mergeRightToLeft)) {
-					masterDiff = candidate;
-				} else if (!isSet(diffRC, mergeRightToLeft) && isOneToOneAndSet(candidate, mergeRightToLeft)) {
-					masterDiff = candidate;
-				}
+		final Iterator<Diff> equivalentDiffs = diff.getEquivalence().getDifferences().iterator();
+		final Iterator<Diff> eOppositeDiffs = Iterators.filter(equivalentDiffs, isDiffOnEOppositeOf(diff));
+		while (masterDiff == null && eOppositeDiffs.hasNext()) {
+			final ReferenceChange candidate = (ReferenceChange)eOppositeDiffs.next();
+			if (isOneToManyAndAdd(diff, candidate, mergeRightToLeft)) {
+				masterDiff = candidate;
+			} else if (!isSet(diff, mergeRightToLeft) && isOneToOneAndSet(diff, candidate, mergeRightToLeft)) {
+				masterDiff = candidate;
 			}
 		}
 		return masterDiff;
 	}
 
 	/**
-	 * Specifies whether {@code equivalent} affects references constituting an one-to-many relationship and
-	 * whether {@code equivalent} is an addition in the current merging.
+	 * Returns the master equivalence of type {@link FeatureMapChange}, for a {@link ReferenceChange}.
+	 * 
+	 * @see AbstractMerger#findMasterEquivalence(Diff, boolean)
+	 * @param diff
+	 *            The {@link Diff} we need to check the equivalence for a 'master' difference.
+	 * @return The master difference of {@code diff} and its equivalent diffs. This method may return
+	 *         <code>null</code> if there is no master diff.
+	 */
+	private Diff getMasterEquivalenceFeatureMap(ReferenceChange diff) {
+		return Iterators.tryFind(diff.getEquivalence().getDifferences().iterator(),
+				Predicates.instanceOf(FeatureMapChange.class)).orNull();
+	}
+
+	/**
+	 * Specifies whether the given reference changes, {@code diff} and {@code equivalent}, affect references
+	 * constituting an one-to-many relationship and whether {@code equivalent} is an addition in the current
+	 * merging.
 	 *
+	 * @param diff
+	 *            The difference to check. One-side of the relation.
 	 * @param equivalent
 	 *            The equivalent to the {@code diff}. Many-side of the relation.
 	 * @param mergeRightToLeft
@@ -244,23 +302,18 @@ public abstract class AbstractMerger implements IMerger2 {
 	 * @return <code>true</code> if {@code diff} and {@code equivalent} are one-to-many eOpposites with
 	 *         {@code equivalent} resulting in an Add-operation, <code>false</code> otherwise.
 	 */
-	private boolean isOneToManyAndAdd(ReferenceChange equivalent, boolean mergeRightToLeft) {
-		if (equivalent.getReference().getEOpposite() == null) {
-			return false;
-		}
-
-		boolean isOneToMany = equivalent.getReference().isMany()
-				&& !equivalent.getReference().getEOpposite().isMany();
-		boolean isManyToOne = !equivalent.getReference().isMany()
-				&& equivalent.getReference().getEOpposite().isMany();
-
-		return (isOneToMany || isManyToOne) && isAdd(equivalent, mergeRightToLeft);
+	private boolean isOneToManyAndAdd(ReferenceChange diff, ReferenceChange equivalent,
+			boolean mergeRightToLeft) {
+		return !diff.getReference().isMany() && equivalent.getReference().isMany()
+				&& isAdd(equivalent, mergeRightToLeft);
 	}
 
 	/**
-	 * Specifies whether {@code equivalent} affects references constituting an one-to-one relationship and
-	 * whether {@code equivalent} is a set in the current merging.
+	 * Specifies whether the given reference changes, {@code diff} and {@code equivalent}, affect references
+	 * constituting an one-to-one relationship and whether {@code equivalent} is a set in the current merging.
 	 *
+	 * @param diff
+	 *            The difference to check.
 	 * @param equivalent
 	 *            The equivalent to the {@code diff}.
 	 * @param mergeRightToLeft
@@ -268,11 +321,9 @@ public abstract class AbstractMerger implements IMerger2 {
 	 * @return <code>true</code> if {@code diff} and {@code equivalent} are one-to-many eOpposites with
 	 *         {@code equivalent} resulting in an Add-operation, <code>false</code> otherwise.
 	 */
-	private boolean isOneToOneAndSet(ReferenceChange equivalent, boolean mergeRightToLeft) {
-		if (equivalent.getReference().getEOpposite() == null) {
-			return false;
-		}
-		return !equivalent.getReference().isMany() && !equivalent.getReference().getEOpposite().isMany()
+	private boolean isOneToOneAndSet(ReferenceChange diff, ReferenceChange equivalent,
+			boolean mergeRightToLeft) {
+		return !diff.getReference().isMany() && !equivalent.getReference().isMany()
 				&& isSet(equivalent, mergeRightToLeft);
 	}
 
@@ -621,19 +672,25 @@ public abstract class AbstractMerger implements IMerger2 {
 				final ReferenceChange diffRC = (ReferenceChange)diff;
 				final ReferenceChange equivalentRC = (ReferenceChange)equivalent;
 
-				if ((diffRC.getReference().getEOpposite() == equivalentRC.getReference() || diffRC
-						.getReference() == equivalentRC.getReference())
+				if (diffRC.getReference().getEOpposite() == equivalentRC.getReference()
 						&& equivalent.getState() == DifferenceState.UNRESOLVED) {
 
 					// This equivalence is on our eOpposite. Should we merge it instead of 'this'?
-					final boolean mergeEquivalence = isOneToManyAndAdd(equivalentRC, rightToLeft)
-							|| isOneToOneAndSet(equivalentRC, rightToLeft);
+					final boolean mergeEquivalence = isOneToManyAndAdd(diffRC, equivalentRC, rightToLeft)
+							|| isOneToOneAndSet(diffRC, equivalentRC, rightToLeft);
 
 					if (mergeEquivalence) {
 						mergeDiff(equivalent, rightToLeft, monitor);
 						continueMerge = false;
 					}
 				}
+			}
+
+			// in the case of a ReferenceChange-FeatureMapChange equivalence, the FeatureMapChange is
+			// preferred to the ReferenceChange - cf. Bug 446252
+			if (diff instanceof ReferenceChange && equivalent instanceof FeatureMapChange) {
+				mergeDiff(equivalent, rightToLeft, monitor);
+				continueMerge = false;
 			}
 
 			/*

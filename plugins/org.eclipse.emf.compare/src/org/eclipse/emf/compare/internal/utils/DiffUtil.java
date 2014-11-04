@@ -947,10 +947,10 @@ public final class DiffUtil {
 		if (diff.getKind() == DifferenceKind.MOVE) {
 			final boolean undoingLeft = rightToLeft && diff.getSource() == DifferenceSource.LEFT;
 			final boolean undoingRight = !rightToLeft && diff.getSource() == DifferenceSource.RIGHT;
+			final EObject targetContainer = getTargetContainer(comparison, diff, rightToLeft);
 			if ((undoingLeft || undoingRight) && match.getOrigin() != null) {
-				expectedContainer = match.getOrigin();
+				expectedContainer = comparison.getMatch(targetContainer).getOrigin();
 			} else {
-				final EObject targetContainer = getTargetContainer(comparison, diff, rightToLeft);
 				if (rightToLeft) {
 					expectedContainer = comparison.getMatch(targetContainer).getRight();
 				} else {
