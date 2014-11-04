@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Obeo and others.
+ * Copyright (c) 2012, 2014 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Stefan Dirix - bug 449796
  *******************************************************************************/
 package org.eclipse.emf.compare.match.eobject;
 
@@ -18,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +57,11 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 	 * </ol>
 	 */
 	private Function<EObject, String> idComputation = new DefaultIDFunction();
+
+	/**
+	 * This will be used to determine what represents the XMI ID of an EObject.
+	 */
+	private Function<EObject, String> xmiIDComputation = new XMIIDFunction();
 
 	/**
 	 * Creates an ID based matcher without any delegate.
@@ -176,9 +183,11 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 			final List<EObject> leftEObjectsNoID, final List<EObject> rightEObjectsNoID,
 			final List<EObject> originEObjectsNoID) {
 		final Set<Match> matches = Sets.newLinkedHashSet();
+
 		// This lookup map will be used by iterations on right and origin to find the match in which they
 		// should add themselves
-		final Map<String, Match> idToMatch = Maps.newHashMap();
+		final Map<String, Match> defaultIDToMatch = Maps.newHashMap();
+		final Map<String, Match> xmiIDToMatch = Maps.newHashMap();
 
 		// We will try and mimic the structure of the input model.
 		// These map do not need to be ordered, we only need fast lookup.
@@ -191,92 +200,201 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 			final EObject left = leftEObjects.next();
 
 			final String identifier = idComputation.apply(left);
-			if (identifier != null) {
-				final Match match = CompareFactory.eINSTANCE.createMatch();
-				match.setLeft(left);
+			if (identifier == null) {
+				leftEObjectsNoID.add(left);
+				continue;
+			}
 
-				// Can we find a parent? Assume we're iterating in containment order
-				final EObject parentEObject = left.eContainer();
-				final Match parent = leftEObjectsToMatch.get(parentEObject);
+			final Match match = CompareFactory.eINSTANCE.createMatch();
+			match.setLeft(left);
+
+			// Can we find a parent? Assume we're iterating in containment order
+			final EObject parentEObject = left.eContainer();
+			final Match parent = leftEObjectsToMatch.get(parentEObject);
+			if (parent != null) {
+				parent.getSubmatches().add(match);
+			} else {
+				matches.add(match);
+			}
+
+			defaultIDToMatch.put(identifier, match);
+			leftEObjectsToMatch.put(left, match);
+
+			// add xmi identifier for improving matches later on
+			String xmiIdentifier = xmiIDComputation.apply(left);
+			if (xmiIdentifier != null) {
+				xmiIDToMatch.put(xmiIdentifier, match);
+			}
+
+		}
+
+		// used for objects which wish to be better matched
+		List<EObject> sndPriorityMatches;
+
+		sndPriorityMatches = performDefaultIDMatching(rightEObjects, rightEObjectsNoID, xmiIDToMatch,
+				defaultIDToMatch, rightEObjectsToMatch, matches, true);
+
+		// second try with xmiID for right elements which were not matched via default id
+		performXMIIDMatching(sndPriorityMatches.iterator(), xmiIDToMatch, defaultIDToMatch,
+				rightEObjectsToMatch, matches, true);
+
+		sndPriorityMatches = performDefaultIDMatching(originEObjects, originEObjectsNoID, xmiIDToMatch,
+				defaultIDToMatch, originEObjectsToMatch, matches, false);
+
+		// second try with xmiID for origin elements which were not matched via default id
+		performXMIIDMatching(sndPriorityMatches.iterator(), xmiIDToMatch, defaultIDToMatch,
+				originEObjectsToMatch, matches, false);
+
+		return matches;
+	}
+
+	/**
+	 * Matches the objects given by {@code objects} via their default id with objects contained in
+	 * {@code defaultIDToMatch} and places them either in {@code noIDObjects} or within the match trees in
+	 * {@code matches} and the {@code objectsToMatch} result mapping.
+	 *
+	 * @param objects
+	 *            The objects to be matched.
+	 * @param noIDObjects
+	 *            The collection within the objects will be placed when no id can be calculated.
+	 * @param xmiIDToMatch
+	 *            The mapping representing all possible matches via the xmi id. Is modified when a new xmi id
+	 *            is found.
+	 * @param defaultIDToMatch
+	 *            The mapping containing all possibles matches via the default id. Is modified when a new
+	 *            match is created.
+	 * @param objectsToMatch
+	 *            The mapping which contains the result of this matching.
+	 * @param matches
+	 *            A collection of trees containing all previously found matches. Is modified when a new match
+	 *            is created.
+	 * @param isRight
+	 *            <ul>
+	 *            <li> {@code true} if the matches are to be modified on the right side</li>
+	 *            <li> {@code false} if the matches are to be modified on the origin side</li>
+	 *            </ul>
+	 * @return Objects which were not matched via the default id but for which an xmi id exists. This
+	 *         collection can be used to perform a better matching for those elements.
+	 */
+	private List<EObject> performDefaultIDMatching(Iterator<? extends EObject> objects,
+			List<EObject> noIDObjects, Map<String, Match> xmiIDToMatch, Map<String, Match> defaultIDToMatch,
+			Map<EObject, Match> objectsToMatch, Set<Match> matches, boolean isRight) {
+
+		List<EObject> sndPriorityMatches = new LinkedList<EObject>();
+
+		while (objects.hasNext()) {
+			final EObject object = objects.next();
+
+			final String identifier = idComputation.apply(object);
+			if (identifier == null) {
+				noIDObjects.add(object);
+				continue;
+			}
+
+			// Do we have an existing match via default id?
+			Match match = defaultIDToMatch.get(identifier);
+			if (match != null) {
+				if (isRight) {
+					match.setRight(object);
+				} else {
+					match.setOrigin(object);
+				}
+
+				objectsToMatch.put(object, match);
+			} else {
+				match = CompareFactory.eINSTANCE.createMatch();
+				if (isRight) {
+					match.setRight(object);
+				} else {
+					match.setOrigin(object);
+				}
+
+				// Can we find a parent?
+				final EObject parentEObject = object.eContainer();
+				final Match parent = objectsToMatch.get(parentEObject);
 				if (parent != null) {
 					parent.getSubmatches().add(match);
 				} else {
 					matches.add(match);
 				}
 
-				idToMatch.put(identifier, match);
-				leftEObjectsToMatch.put(left, match);
-			} else {
-				leftEObjectsNoID.add(left);
-			}
-		}
+				objectsToMatch.put(object, match);
+				defaultIDToMatch.put(identifier, match);
 
-		while (rightEObjects.hasNext()) {
-			final EObject right = rightEObjects.next();
-
-			// Do we have an existing match?
-			final String identifier = idComputation.apply(right);
-			if (identifier != null) {
-				Match match = idToMatch.get(identifier);
-				if (match != null) {
-					match.setRight(right);
-
-					rightEObjectsToMatch.put(right, match);
-				} else {
-					// Otherwise, create and place it.
-					match = CompareFactory.eINSTANCE.createMatch();
-					match.setRight(right);
-
-					// Can we find a parent?
-					final EObject parentEObject = right.eContainer();
-					final Match parent = rightEObjectsToMatch.get(parentEObject);
-					if (parent != null) {
-						parent.getSubmatches().add(match);
+				// objects which were not matched via default id can maybe be matched via xmi id. Save them
+				// and try to match in a second round to not "steal" a default-id matching pair
+				String xmiIdentifier = xmiIDComputation.apply(object);
+				if (xmiIdentifier != null) {
+					Match xmiIdentMatch = xmiIDToMatch.get(xmiIdentifier);
+					if (xmiIdentMatch != null) {
+						// A potential match exists. Try to match later to see if it's still viable
+						sndPriorityMatches.add(object);
 					} else {
-						matches.add(match);
+						// No potential match exists. Add this match so a potential origin can be matched via
+						// xmi id
+						xmiIDToMatch.put(xmiIdentifier, match);
 					}
-
-					rightEObjectsToMatch.put(right, match);
-					idToMatch.put(identifier, match);
 				}
-			} else {
-				rightEObjectsNoID.add(right);
 			}
 		}
 
-		while (originEObjects.hasNext()) {
-			final EObject origin = originEObjects.next();
+		return sndPriorityMatches;
+	}
 
-			// Do we have an existing match?
-			final String identifier = idComputation.apply(origin);
-			if (identifier != null) {
-				Match match = idToMatch.get(identifier);
-				if (match != null) {
-					match.setOrigin(origin);
+	/**
+	 * Tries to match the elements of {@code objects} with low priority. This means if a possible match is
+	 * found, the object will only be matched if the corresponding partner is not already matched.
+	 *
+	 * @param objects
+	 *            The objects for which a low priority matching is tried.
+	 * @param xmiIDToMatch
+	 *            The mapping containing all possible matches via the xmi id.
+	 * @param defaultIDToMatch
+	 *            The mapping containing all possibles matches via the default id. Is modified when a better
+	 *            matching is found.
+	 * @param objectsToMatch
+	 *            The result mapping of the high priority matching. Is modified when a better matching is
+	 *            found.
+	 * @param matches
+	 *            Collection containing all root matches.
+	 * @param isRight
+	 *            <ul>
+	 *            <li> {@code true} if the matches are to be modified on the right side</li>
+	 *            <li> {@code false} if the matches are to be modified on the origin side</li>
+	 *            </ul>
+	 */
+	private void performXMIIDMatching(Iterator<EObject> objects, Map<String, Match> xmiIDToMatch,
+			Map<String, Match> defaultIDToMatch, Map<EObject, Match> objectsToMatch, Set<Match> matches,
+			boolean isRight) {
+		while (objects.hasNext()) {
+			EObject object = objects.next();
+			String xmiIdentifier = xmiIDComputation.apply(object);
+			Match potentialMatch = xmiIDToMatch.get(xmiIdentifier);
 
-					originEObjectsToMatch.put(origin, match);
+			if ((isRight && potentialMatch.getRight() == null)
+					|| (!isRight && potentialMatch.getOrigin() == null)) {
+
+				// better match possible - change previous results
+				Match emptyMatch = objectsToMatch.get(object);
+				potentialMatch.getSubmatches().addAll(emptyMatch.getSubmatches());
+				if (matches.contains(emptyMatch)) {
+					matches.remove(emptyMatch);
+				}
+				EcoreUtil.delete(emptyMatch);
+
+				// add new results
+				if (isRight) {
+					potentialMatch.setRight(object);
 				} else {
-					// Otherwise, create and place it.
-					match = CompareFactory.eINSTANCE.createMatch();
-					match.setOrigin(origin);
-
-					// Can we find a parent?
-					final EObject parentEObject = origin.eContainer();
-					final Match parent = originEObjectsToMatch.get(parentEObject);
-					if (parent != null) {
-						parent.getSubmatches().add(match);
-					} else {
-						matches.add(match);
-					}
-
-					idToMatch.put(identifier, match);
-					originEObjectsToMatch.put(origin, match);
+					potentialMatch.setOrigin(object);
 				}
-			} else {
-				originEObjectsNoID.add(origin);
+
+				objectsToMatch.put(object, potentialMatch);
+
+				String defaultIdentifier = idComputation.apply(object);
+				defaultIDToMatch.put(defaultIdentifier, potentialMatch);
 			}
 		}
-		return matches;
 	}
 
 	/**
@@ -310,6 +428,35 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 						identifier = null;
 					}
 				}
+			}
+			return identifier;
+		}
+	}
+
+	/**
+	 * The function to retrieve XMI IDs from EObject.
+	 * 
+	 * @since 3.2
+	 */
+	public static class XMIIDFunction implements Function<EObject, String> {
+		/**
+		 * Return XMI ID for an EObject, null if not found.
+		 * 
+		 * @param eObject
+		 *            The EObject for which we need an identifier.
+		 * @return The XMI ID for that EObject if we could determine one, <code>null</code> otherwise.
+		 */
+		public String apply(EObject eObject) {
+			if (eObject == null) {
+				return null;
+			}
+
+			final String identifier;
+			final Resource eObjectResource = eObject.eResource();
+			if (eObjectResource instanceof XMIResource) {
+				identifier = ((XMIResource)eObjectResource).getID(eObject);
+			} else {
+				identifier = null;
 			}
 			return identifier;
 		}
