@@ -53,6 +53,7 @@ public final class UMLExtensionFactoryRegistry {
 		final Map<Class<? extends Diff>, IChangeFactory> dataset = new LinkedHashMap<Class<? extends Diff>, IChangeFactory>();
 
 		List<IChangeFactory> factories = new ArrayList<IChangeFactory>();
+		factories.add(new UMLOpaqueElementBodyChangeFactory());
 		factories.add(new UMLAssociationChangeFactory());
 		factories.add(new UMLDirectedRelationshipFactory());
 		factories.add(new UMLGeneralizationSetChangeFactory());
