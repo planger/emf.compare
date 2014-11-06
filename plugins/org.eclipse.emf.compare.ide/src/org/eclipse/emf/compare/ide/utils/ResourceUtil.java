@@ -220,19 +220,12 @@ public final class ResourceUtil {
 			return createURIFor((IFile)storage);
 		}
 
-		final String resourceName = storage.getName();
-		String path = storage.getFullPath().toString();
-		if (!path.endsWith(resourceName)) {
-			final int endIndex = path.indexOf(resourceName) + resourceName.length();
-			path = path.substring(0, endIndex);
-		}
+		String path = getFixedPath(storage).toString();
 
 		// Given the two paths
 		// "g:/ws/project/test.ecore"
 		// "/project/test.ecore"
 		// We have no way to determine which is absolute and which should be platform:/resource
-		// Furthermore, "ws" could be a git repository, in which case we would be here with
-		// ws/project/test.ecore
 		URI uri;
 		if (path.startsWith("platform:/plugin/")) { //$NON-NLS-1$
 			uri = URI.createURI(path);
@@ -244,19 +237,28 @@ public final class ResourceUtil {
 
 		final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		final IPath iPath = new Path(path);
-		if (root != null && iPath.segmentCount() >= 2) {
-			if (root.getFile(iPath).exists()) {
-				uri = URI.createPlatformResourceURI(path, true);
-			} else {
-				// is it a file coming from a Git repository?
-				final IPath trimmed = iPath.removeFirstSegments(1);
-				if (trimmed.segmentCount() >= 2 && root.getFile(trimmed).exists()) {
-					uri = URI.createPlatformResourceURI(trimmed.toString(), true);
-				}
-			}
+		if (root != null && iPath.segmentCount() >= 2 && root.getFile(iPath).exists()) {
+			uri = URI.createPlatformResourceURI(path, true);
 		}
 
 		return uri;
+	}
+
+	/**
+	 * Returns a path for this storage after fixing from an {@link IStoragePathProvider} if one exists.
+	 * 
+	 * @param storage
+	 *            The storage for which we need a fixed full path.
+	 * @return The full path to this storage, fixed if need be.
+	 * @since 3.2
+	 */
+	public static IPath getFixedPath(IStorage storage) {
+		final Object adapter = Platform.getAdapterManager().loadAdapter(storage,
+				IStoragePathProvider.class.getName());
+		if (adapter instanceof IStoragePathProvider) {
+			return ((IStoragePathProvider)adapter).computeFixedPath(storage);
+		}
+		return storage.getFullPath();
 	}
 
 	/**

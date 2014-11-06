@@ -24,6 +24,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.mapping.ResourceMapping;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -174,13 +175,14 @@ public class EMFResourceMappingMerger implements IResourceMappingMerger {
 			save(scope.getLeft());
 
 			for (IStorage storage : syncModel.getLeftTraversal().getStorages()) {
-				if (storage.getFullPath() == null) {
+				final IPath fullPath = ResourceUtil.getFixedPath(storage);
+				if (fullPath == null) {
 					EMFCompareIDEUIPlugin.getDefault().getLog().log(
 							new Status(IStatus.WARNING, EMFCompareIDEUIPlugin.PLUGIN_ID,
 									EMFCompareIDEUIMessages
 											.getString("EMFResourceMappingMerger.mergeIncomplete"))); //$NON-NLS-1$
 				} else {
-					final IDiff diff = mergeContext.getDiffTree().getDiff(storage.getFullPath());
+					final IDiff diff = mergeContext.getDiffTree().getDiff(fullPath);
 					if (diff != null) {
 						mergeContext.markAsMerged(diff, true, subMonitor.newChild(1)); // 100%
 					}

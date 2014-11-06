@@ -28,6 +28,7 @@ import org.eclipse.emf.common.util.BasicDiagnostic;
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.compare.ide.ui.internal.EMFCompareIDEUIMessages;
 import org.eclipse.emf.compare.ide.ui.internal.EMFCompareIDEUIPlugin;
+import org.eclipse.emf.compare.ide.utils.ResourceUtil;
 import org.eclipse.emf.compare.ide.utils.StorageTraversal;
 import org.eclipse.emf.compare.utils.IDiagnosable;
 
@@ -214,7 +215,8 @@ public final class SynchronizationModel implements IDiagnosable {
 				 * or local content. The traversal itself only tells "all" potential resources linked to the
 				 * current.
 				 */
-				resources.add(ResourcesPlugin.getWorkspace().getRoot().getFile(storage.getFullPath()));
+				resources.add(ResourcesPlugin.getWorkspace().getRoot().getFile(
+						ResourceUtil.getFixedPath(storage)));
 			}
 		}
 		return resources;

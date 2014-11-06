@@ -126,7 +126,8 @@ public class StorageTraversal implements IAdaptable, IDiagnosable {
 					 * remote or local content. The traversal itself only tells "all" potential resources
 					 * linked to the current.
 					 */
-					resources.add(ResourcesPlugin.getWorkspace().getRoot().getFile(storage.getFullPath()));
+					resources.add(ResourcesPlugin.getWorkspace().getRoot().getFile(
+							ResourceUtil.getFixedPath(storage)));
 				}
 			}
 			final IResource[] resourceArray = resources.toArray(new IResource[resources.size()]);
