@@ -89,4 +89,12 @@ public class TwoWayMergeInputData extends AbstractInputData {
 	public Resource getTestcaseL2RRight() throws IOException {
 		return loadFromClassLoader("twoway/mytestcases/ltr/right.nodes");
 	}
+
+	public Resource getXMILeft() throws IOException {
+		return loadFromClassLoader("twoway/mytestcases/ltr/xmileft.nodes");
+	}
+
+	public Resource getXMIRight() throws IOException {
+		return loadFromClassLoader("twoway/mytestcases/ltr/xmiright.nodes");
+	}
 }

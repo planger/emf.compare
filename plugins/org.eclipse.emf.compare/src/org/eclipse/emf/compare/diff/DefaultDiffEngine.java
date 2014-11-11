@@ -492,6 +492,16 @@ public class DefaultDiffEngine implements IDiffEngine {
 		} else {
 			shortcut = match.getLeft() == null || match.getRight() == null;
 		}
+
+		// Feature Maps can not be shortcutted when they have more than one entry to keep their ordering
+		// intact
+		if (shortcut && FeatureMapUtil.isFeatureMap(attribute)) {
+			EObject owner = getOwner(match);
+			if (owner != null && FeatureMapUtil.isMany(owner, attribute)) {
+				shortcut = false;
+			}
+		}
+
 		if (shortcut) {
 			return;
 		}
@@ -505,6 +515,25 @@ public class DefaultDiffEngine implements IDiffEngine {
 		} else {
 			computeSingleValuedAttributeDifferences(match, attribute);
 		}
+	}
+
+	/**
+	 * Returns one side of the match if it exists. The order of the checked sides is Origin, Left and Right.
+	 *
+	 * @param match
+	 *            The match whose sides are checked.
+	 * @return Either Origin, Left or Right if one of them exists, {@code null} otherwise.
+	 */
+	private EObject getOwner(Match match) {
+		EObject owner = null;
+		if (match.getOrigin() != null) {
+			owner = match.getOrigin();
+		} else if (match.getLeft() != null) {
+			owner = match.getLeft();
+		} else if (match.getRight() != null) {
+			owner = match.getRight();
+		}
+		return owner;
 	}
 
 	/**

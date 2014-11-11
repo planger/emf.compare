@@ -6,7 +6,7 @@
     xmlns:nodes="http://www.eclipse.org/emf/compare/tests/nodes"
     xmi:id="_root"
     name="Root">
-    <containmentRef1 xsi:type="nodes:NodeFeatureMapContainment2">
+    <containmentRef1 xsi:type="nodes:NodeFeatureMapContainment2" name="n2">
       <multiple name="b"/>
       <single name="a"/>
     </containmentRef1>
