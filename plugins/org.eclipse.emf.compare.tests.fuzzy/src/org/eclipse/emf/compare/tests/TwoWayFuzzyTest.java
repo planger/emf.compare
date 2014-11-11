@@ -24,6 +24,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.EMFCompare;
+import org.eclipse.emf.compare.internal.merge.MergeMode;
 import org.eclipse.emf.compare.merge.BatchMerger;
 import org.eclipse.emf.compare.merge.IBatchMerger;
 import org.eclipse.emf.compare.merge.IMerger;
@@ -66,19 +67,15 @@ import com.google.common.collect.Sets;
 @DataProvider(ESEMFDataProvider.class)
 public class TwoWayFuzzyTest {
 
-	public enum MergeDirection {
-		LEFT_TO_RIGHT, RIGHT_TO_LEFT;
-	}
-
 	public class TwoWayMergeData {
 
 		protected Notifier left;
 
 		protected Notifier right;
 
-		protected MergeDirection direction;
+		protected MergeMode direction;
 
-		protected TwoWayMergeData(Notifier left, Notifier right, MergeDirection direction) {
+		protected TwoWayMergeData(Notifier left, Notifier right, MergeMode direction) {
 			this.left = left;
 			this.right = right;
 			this.direction = direction;
@@ -157,7 +154,7 @@ public class TwoWayFuzzyTest {
 	public void diffAndMergeAllRightToLeft() {
 		final Notifier left = getLeftWorkingNotifier();
 		final Notifier right = getRightWorkingNotifier();
-		final MergeDirection direction = MergeDirection.RIGHT_TO_LEFT;
+		final MergeMode direction = MergeMode.RIGHT_TO_LEFT;
 		performBatchMergeAndEqualityCheckTest(new TwoWayMergeData(left, right, direction));
 	}
 
@@ -165,7 +162,7 @@ public class TwoWayFuzzyTest {
 	public void diffAndMergeAllLeftToRight() {
 		final Notifier left = getLeftWorkingNotifier();
 		final Notifier right = getRightWorkingNotifier();
-		final MergeDirection direction = MergeDirection.LEFT_TO_RIGHT;
+		final MergeMode direction = MergeMode.LEFT_TO_RIGHT;
 		performBatchMergeAndEqualityCheckTest(new TwoWayMergeData(left, right, direction));
 	}
 
@@ -215,12 +212,12 @@ public class TwoWayFuzzyTest {
 		mutateUtil.saveEObject((EObject)data.right, getDebugFileName("right", data.direction), true);
 	}
 
-	private String getDebugFileName(String fileName, MergeDirection direction) {
+	private String getDebugFileName(String fileName, MergeMode direction) {
 		final String directionString = getDirectionName(direction);
 		return directionString + "_" + fileName;
 	}
 
-	private String getDirectionName(MergeDirection direction) {
+	private String getDirectionName(MergeMode direction) {
 		final String directionString;
 		switch (direction) {
 			case RIGHT_TO_LEFT:

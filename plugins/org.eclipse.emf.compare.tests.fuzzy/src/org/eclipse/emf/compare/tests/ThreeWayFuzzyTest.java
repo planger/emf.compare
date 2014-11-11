@@ -78,13 +78,13 @@ public class ThreeWayFuzzyTest {
 	@Util
 	protected ESMutateUtil mutateUtil;
 
-	private EObject originRootObject;
+	protected EObject originRootObject;
 
-	private EObject leftRootObject;
+	protected EObject leftRootObject;
 
-	private EObject rightRootObject;
+	protected EObject rightRootObject;
 
-	private boolean mutateLeft;
+	protected boolean mutateLeft;
 
 	@Before
 	public void prepareTwoVersions() {
