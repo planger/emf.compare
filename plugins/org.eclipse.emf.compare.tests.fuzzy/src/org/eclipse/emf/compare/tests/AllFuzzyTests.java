@@ -9,9 +9,11 @@ import org.junit.runners.Suite;
 	NodesTwoWayFuzzyTest.class,
 	NodesMultiResourceTwoWayFuzzyTest.class,
 	NodesIdentityTwoWayFuzzyTest.class,
+	IdentityMultiResourceTwoWayFuzzyTest.class,
 	NodesResourceTwoWayFuzzyTest.class,
 	MultiResourceTwoWayFuzzyTest.class,
-	NodesThreeWayFuzzyTest.class})
+	NodesThreeWayFuzzyTest.class,
+	ThreeWayFuzzyTest.class})
 public class AllFuzzyTests {
 
 }

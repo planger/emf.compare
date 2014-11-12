@@ -32,11 +32,15 @@ import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.emfstore.fuzzy.emf.ESEMFDataProvider;
 import org.eclipse.emf.emfstore.fuzzy.emf.ESMutateUtil;
+import org.eclipse.emf.emfstore.fuzzy.emf.junit.ESFuzzyRunner;
 import org.eclipse.emf.emfstore.fuzzy.emf.junit.Annotations.Data;
+import org.eclipse.emf.emfstore.fuzzy.emf.junit.Annotations.DataProvider;
 import org.eclipse.emf.emfstore.fuzzy.emf.junit.Annotations.Util;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.google.common.collect.Sets;
 
@@ -52,6 +56,8 @@ import com.google.common.collect.Sets;
  * 
  * @author Philip Langer <planger@eclipsesource.com>
  */
+@RunWith(ESFuzzyRunner.class)
+@DataProvider(ESEMFDataProvider.class)
 public class ThreeWayFuzzyTest {
 
 	protected class ThreeWayMergeData {
