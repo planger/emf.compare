@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.emf.common.util.CommonUtil;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.compare.internal.merge.MergeMode;
 import org.eclipse.emf.ecore.EObject;
@@ -40,21 +41,24 @@ public class MultiResourceTwoWayFuzzyTest extends TwoWayFuzzyTest {
 	public void prepareTwoVersions() {
 		leftSet = new ResourceSetImpl();
 		rightSet = new ResourceSetImpl();
+		ResourceSet tmpRightSet = new ResourceSetImpl();
 		copyResourceSet(leftSet, generatedRootObject.eResource().getResourceSet());
-		copyResourceSet(rightSet, generatedRootObject.eResource().getResourceSet());
+		copyResourceSet(tmpRightSet, generatedRootObject.eResource().getResourceSet());
 		
 		leftRootObject = leftSet.getResources().get(0).getContents().get(0);
-		rightRootObject = (EObject)leftSet.getResources().get(0).getContents().get(0);
+		rightRootObject = tmpRightSet.getResources().get(0).getContents().get(0);
 		
 		secondMutator = new ESCrossResourceReferencesModelMutator(getConfig(rightRootObject));
 		
 		removeAllDuplicateCrossReferences(leftRootObject);
 		removeAllDuplicateCrossReferences(rightRootObject);
-		assertTrue(EcoreUtil.equals(leftRootObject, rightRootObject));
+		assertTrue("Left and right root objects are not equal", EcoreUtil.equals(leftRootObject, rightRootObject));
 				
 		secondMutator.mutate(Collections.<EStructuralFeature>emptySet());
 		removeAllDuplicateCrossReferences(rightRootObject);
-
+		
+		copyResourceSet(rightSet, tmpRightSet);
+		rightRootObject = rightSet.getResources().get(0).getContents().get(0);
 	}
 	
 	@Test
@@ -88,6 +92,7 @@ public class MultiResourceTwoWayFuzzyTest extends TwoWayFuzzyTest {
 		mmc.seteClassesToIgnore(mutateUtil.getEClassesToIgnore());
 		mmc.setMinObjectsCount(mutateUtil.getMinObjectsCount());
 		mmc.setMutationCount(mutateUtil.getMutationCount());
+		mmc.setDoNotGenerateRoot(true);
 		return mmc;
 	}
 

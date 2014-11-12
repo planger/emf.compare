@@ -18,7 +18,7 @@
     </mutatorConfig>
   </org.eclipse.emf.emfstore.fuzzy.emf.config:TestConfig>
   <org.eclipse.emf.emfstore.fuzzy.emf.config:TestConfig seed="1" count="500" testClass="org.eclipse.emf.compare.tests.MultiResourceTwoWayFuzzyTest" id="_r78GhIvSEeGC3oFJZ-5HoM">
-    <mutatorConfig minObjectsCount="100">
+    <mutatorConfig minObjectsCount="5" mutationCount="3">
       <ePackages href="http://www.eclipse.org/emf/2002/Ecore#/"/>
       <eClassesToIgnore href="http://www.eclipse.org/emf/2002/Ecore#//EGenericType"/>
       <eClassesToIgnore href="http://www.eclipse.org/emf/2002/Ecore#//ETypeParameter"/>
