@@ -15,41 +15,9 @@ import junit.framework.Test;
 import junit.textui.TestRunner;
 
 import org.eclipse.emf.compare.ComparePackage;
-import org.eclipse.emf.compare.tests.command.CommandStackTestSuite;
-import org.eclipse.emf.compare.tests.conflict.ConflictDetectionTest;
-import org.eclipse.emf.compare.tests.diff.ComparisonUtilTest;
-import org.eclipse.emf.compare.tests.diff.DiffUtilTest;
-import org.eclipse.emf.compare.tests.diff.FeatureFilterTest;
-import org.eclipse.emf.compare.tests.diff.LCSPerformanceTest;
-import org.eclipse.emf.compare.tests.diff.URIDistanceTest;
-import org.eclipse.emf.compare.tests.edit.AllEditTests;
-import org.eclipse.emf.compare.tests.equi.EquiComputingTest;
-import org.eclipse.emf.compare.tests.fragmentation.FragmentationTest;
-import org.eclipse.emf.compare.tests.fullcomparison.DynamicInstanceComparisonTest;
-import org.eclipse.emf.compare.tests.fullcomparison.ExtLibraryTest;
-import org.eclipse.emf.compare.tests.fullcomparison.IdentifierComparisonTest;
-import org.eclipse.emf.compare.tests.fullcomparison.ProximityComparisonTest;
-import org.eclipse.emf.compare.tests.match.MatchEngineFactoryRegistryTest;
-import org.eclipse.emf.compare.tests.match.ProximityIndexTest;
-import org.eclipse.emf.compare.tests.merge.ConflictMergeTest;
-import org.eclipse.emf.compare.tests.merge.ExtensionMergeTest;
-import org.eclipse.emf.compare.tests.merge.FeatureMaps2wayMergeTest;
-import org.eclipse.emf.compare.tests.merge.FeatureMaps3wayMergeTest;
-import org.eclipse.emf.compare.tests.merge.FeatureMapsConflictsMergeTest;
-import org.eclipse.emf.compare.tests.merge.FeatureMapsPseudoConflictsMergeTest;
-import org.eclipse.emf.compare.tests.merge.IndividualMergeOutOfScopeValuesTest;
-import org.eclipse.emf.compare.tests.merge.IndividualMergeTest;
-import org.eclipse.emf.compare.tests.merge.MultipleMergeTest;
-import org.eclipse.emf.compare.tests.merge.PseudoConflictMergeTest;
-import org.eclipse.emf.compare.tests.merge.ThreeWayBatchMergingTest;
 import org.eclipse.emf.compare.tests.merge.TwoWayBatchMergingTest;
 import org.eclipse.emf.compare.tests.nodes.NodesPackage;
 import org.eclipse.emf.compare.tests.nodes.util.NodesResourceFactoryImpl;
-import org.eclipse.emf.compare.tests.postprocess.PostProcessorTest;
-import org.eclipse.emf.compare.tests.rcp.AllRCPTests;
-import org.eclipse.emf.compare.tests.req.ReqComputingTest;
-import org.eclipse.emf.compare.tests.scope.DefaultComparisonScopeTest;
-import org.eclipse.emf.compare.tests.utils.EqualityHelperTest;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.junit.BeforeClass;
@@ -63,17 +31,7 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author <a href="mailto:laurent.goubet@obeo.fr">Laurent Goubet</a>
  */
 @RunWith(Suite.class)
-@SuiteClasses({CompareTestSuite.class, DefaultComparisonScopeTest.class, IdentifierComparisonTest.class,
-		ExtLibraryTest.class, ConflictDetectionTest.class, ReqComputingTest.class, EquiComputingTest.class,
-		DiffUtilTest.class, ComparisonUtilTest.class, LCSPerformanceTest.class, MultipleMergeTest.class,
-		PostProcessorTest.class, IndividualMergeTest.class, ExtensionMergeTest.class,
-		IndividualMergeOutOfScopeValuesTest.class, ProximityComparisonTest.class,
-		DynamicInstanceComparisonTest.class, URIDistanceTest.class, FragmentationTest.class,
-		AllEditTests.class, CommandStackTestSuite.class, MatchEngineFactoryRegistryTest.class,
-		ConflictMergeTest.class, PseudoConflictMergeTest.class, ProximityIndexTest.class, AllRCPTests.class,
-		FeatureMaps2wayMergeTest.class, FeatureMaps3wayMergeTest.class, FeatureMapsConflictsMergeTest.class,
-		FeatureMapsPseudoConflictsMergeTest.class, TwoWayBatchMergingTest.class, EqualityHelperTest.class,
-		FeatureFilterTest.class, ThreeWayBatchMergingTest.class })
+@SuiteClasses({TwoWayBatchMergingTest.class })
 public class AllTests {
 	/**
 	 * Standalone launcher for all of compare's tests.

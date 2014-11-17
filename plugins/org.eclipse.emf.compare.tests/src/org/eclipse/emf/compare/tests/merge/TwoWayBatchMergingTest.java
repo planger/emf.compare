@@ -14,7 +14,9 @@ package org.eclipse.emf.compare.tests.merge;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.common.util.EList;
@@ -36,9 +38,11 @@ import org.eclipse.emf.compare.tests.merge.data.TwoWayMergeInputData;
 import org.eclipse.emf.compare.tests.nodes.Node;
 import org.eclipse.emf.compare.tests.nodes.NodeMultipleContainment;
 import org.eclipse.emf.compare.tests.nodes.NodeOppositeRefOneToMany;
+import org.eclipse.emf.compare.tests.nodes.NodeOppositeRefOneToOne;
 import org.eclipse.emf.compare.tests.nodes.NodesPackage;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.xmi.XMIResource;
 import org.junit.Test;
 
 /**
@@ -195,11 +199,17 @@ public class TwoWayBatchMergingTest {
 		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT);
 	}
 
-	@Test
 	public void testTestCase() throws IOException {
 		final Resource left = input.getTestcaseL2RLeft();
 		final Resource right = input.getTestcaseL2RRight();
 		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT);
+	}
+
+	@Test
+	public void testXMI() throws IOException {
+		final Resource left = input.getXMILeft();
+		final Resource right = input.getXMIRight();
+		batchMergeAndAssertEquality(left, right, Direction.RIGHT_TO_LEFT);
 	}
 
 	/**
@@ -212,25 +222,47 @@ public class TwoWayBatchMergingTest {
 	 *            right resource.
 	 */
 	private void batchMergeAndAssertEquality(Resource left, Resource right, Direction direction) {
-		// perform comparison
-		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
-		Comparison comparison = EMFCompare.builder().build().compare(scope);
-		final EList<Diff> differences = comparison.getDifferences();
-		List<Match> matches = comparison.getMatches();
+		for (int index = 0; index < 2000; index++) {
+			final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+			Comparison comparison = EMFCompare.builder().build().compare(scope);
+			final EList<Diff> differences = comparison.getDifferences();
+			List<Match> matches = comparison.getMatches();
+			Match match = matches.get(0);
+			EList<Match> submatches = match.getSubmatches();
+			for (Match smatch : submatches) {
+				EObject left2 = smatch.getLeft();
+				EObject right2 = smatch.getRight();
+				XMIResource lR = (XMIResource)left2.eResource();
+				XMIResource rR = (XMIResource)right2.eResource();
+				System.out.println(lR.getID(left2));
+				System.out.println(rR.getID(right2));
+				NodeOppositeRefOneToOne left2N = (NodeOppositeRefOneToOne)left2;
+				NodeOppositeRefOneToOne right2N = (NodeOppositeRefOneToOne)right2;
+				// left2N.setName(lR.getID(left2));
+				// right2N.setName(rR.getID(right2));
+			}
 
-		// batch merging of all detected differences:
-		final IBatchMerger merger = new BatchMerger(mergerRegistry);
-		switch (direction) {
-			case LEFT_TO_RIGHT:
-				merger.copyAllLeftToRight(differences, new BasicMonitor());
-			case RIGHT_TO_LEFT:
-				merger.copyAllRightToLeft(differences, new BasicMonitor());
+			Random random = new Random(1);
+			for (int i = 0; i < index; i++) {
+				random.nextLong();
+			}
+			Collections.shuffle(differences, new Random(random.nextLong()));
+
+			// batch merging of all detected differences:
+			final IBatchMerger merger = new BatchMerger(mergerRegistry);
+			switch (direction) {
+				case LEFT_TO_RIGHT:
+					merger.copyAllLeftToRight(differences, new BasicMonitor());
+				case RIGHT_TO_LEFT:
+					merger.copyAllRightToLeft(differences, new BasicMonitor());
+			}
+
+			// check that models are equal after batch merging
+			Comparison assertionComparison = EMFCompare.builder().build().compare(scope);
+			EList<Diff> assertionDifferences = assertionComparison.getDifferences();
+			assertEquals(0, assertionDifferences.size());
 		}
 
-		// check that models are equal after batch merging
-		Comparison assertionComparison = EMFCompare.builder().build().compare(scope);
-		EList<Diff> assertionDifferences = assertionComparison.getDifferences();
-		assertEquals(0, assertionDifferences.size());
 	}
 
 }
