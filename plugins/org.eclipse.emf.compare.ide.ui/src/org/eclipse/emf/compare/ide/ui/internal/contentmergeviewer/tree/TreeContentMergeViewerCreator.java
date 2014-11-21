@@ -13,6 +13,8 @@ package org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.tree;
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.IViewerCreator;
 import org.eclipse.emf.compare.ide.ui.internal.configuration.EMFCompareConfiguration;
+import org.eclipse.emf.compare.ide.ui.internal.structuremergeviewer.provider.TreeNodeCompareInput;
+import org.eclipse.emf.compare.ide.ui.internal.structuremergeviewer.provider.TreeNodeCompareInputLabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Composite;
 
@@ -35,7 +37,9 @@ public class TreeContentMergeViewerCreator implements IViewerCreator {
 	 *      org.eclipse.compare.CompareConfiguration)
 	 */
 	public Viewer createViewer(Composite parent, CompareConfiguration config) {
-		return new TreeContentMergeViewer(parent, new EMFCompareConfiguration(config));
+		final EMFCompareConfiguration emfConfig = new EMFCompareConfiguration(config);
+		emfConfig.setLabelProvider(TreeNodeCompareInput.class, new TreeNodeCompareInputLabelProvider());
+		return new TreeContentMergeViewer(parent, emfConfig);
 	}
 
 }

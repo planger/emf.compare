@@ -858,10 +858,11 @@ public class EMFCompareStructureMergeViewer extends AbstractStructuredViewerWrap
 			treeNode.setData(comparison);
 			final Object input = fAdapterFactory.adapt(treeNode, ICompareInput.class);
 
+			final EMFCompareConfiguration config = getCompareConfiguration();
+
 			// this will set to the EMPTY difference group provider, but necessary to avoid NPE while setting
 			// input.
-			IDifferenceGroupProvider groupProvider = getCompareConfiguration()
-					.getStructureMergeViewerGrouper().getProvider();
+			IDifferenceGroupProvider groupProvider = config.getStructureMergeViewerGrouper().getProvider();
 			treeNode.eAdapters().add(groupProvider);
 
 			// display problem tabs if any
@@ -885,7 +886,7 @@ public class EMFCompareStructureMergeViewer extends AbstractStructuredViewerWrap
 				}
 			});
 
-			getCompareConfiguration().setComparisonAndScope(comparison, scope);
+			config.setComparisonAndScope(comparison, scope);
 
 			SWTUtil.safeAsyncExec(new Runnable() {
 				public void run() {
