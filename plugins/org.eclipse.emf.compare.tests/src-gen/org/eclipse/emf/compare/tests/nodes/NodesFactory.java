@@ -163,15 +163,6 @@ public interface NodesFactory extends EFactory {
 	MonoValuedNodeFeatureMapNonContainment createMonoValuedNodeFeatureMapNonContainment();
 
 	/**
-	 * Returns a new object of class '<em>Feature Map With Simple Keys</em>'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return a new object of class '<em>Feature Map With Simple Keys</em>'.
-	 * @generated
-	 */
-	FeatureMapWithSimpleKeys createFeatureMapWithSimpleKeys();
-
-	/**
 	 * Returns the package supported by this factory.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->

@@ -63,10 +63,5 @@
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference nodes.ecore#//MonoValuedNodeFeatureMapNonContainment/firstMonoKey"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference nodes.ecore#//MonoValuedNodeFeatureMapNonContainment/secondMonoKey"/>
     </genClasses>
-    <genClasses ecoreClass="nodes.ecore#//FeatureMapWithSimpleKeys">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute nodes.ecore#//FeatureMapWithSimpleKeys/simpleMap"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute nodes.ecore#//FeatureMapWithSimpleKeys/firstAttribute"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute nodes.ecore#//FeatureMapWithSimpleKeys/secondAttribute"/>
-    </genClasses>
   </genPackages>
 </genmodel:GenModel>

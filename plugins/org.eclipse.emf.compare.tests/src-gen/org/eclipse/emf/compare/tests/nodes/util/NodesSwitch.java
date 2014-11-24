@@ -195,13 +195,6 @@ public class NodesSwitch<T> {
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
-			case NodesPackage.FEATURE_MAP_WITH_SIMPLE_KEYS: {
-				FeatureMapWithSimpleKeys featureMapWithSimpleKeys = (FeatureMapWithSimpleKeys)theEObject;
-				T result = caseFeatureMapWithSimpleKeys(featureMapWithSimpleKeys);
-				if (result == null) result = caseNode(featureMapWithSimpleKeys);
-				if (result == null) result = defaultCase(theEObject);
-				return result;
-			}
 			default: return defaultCase(theEObject);
 		}
 	}
@@ -413,21 +406,6 @@ public class NodesSwitch<T> {
 	 * @generated
 	 */
 	public T caseMonoValuedNodeFeatureMapNonContainment(MonoValuedNodeFeatureMapNonContainment object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Feature Map With Simple Keys</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Feature Map With Simple Keys</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseFeatureMapWithSimpleKeys(FeatureMapWithSimpleKeys object) {
 		return null;
 	}
 

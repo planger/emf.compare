@@ -66,7 +66,7 @@ public interface MonoValuedNodeFeatureMapNonContainment extends Node {
 	 * @return the value of the '<em>First Mono Key</em>' reference.
 	 * @see #setFirstMonoKey(Node)
 	 * @see org.eclipse.emf.compare.tests.nodes.NodesPackage#getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey()
-	 * @model required="true" transient="true" volatile="true" derived="true"
+	 * @model transient="true" volatile="true" derived="true"
 	 *        extendedMetaData="group='#monoMap'"
 	 * @generated
 	 */
@@ -93,7 +93,7 @@ public interface MonoValuedNodeFeatureMapNonContainment extends Node {
 	 * @return the value of the '<em>Second Mono Key</em>' reference.
 	 * @see #setSecondMonoKey(Node)
 	 * @see org.eclipse.emf.compare.tests.nodes.NodesPackage#getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey()
-	 * @model required="true" transient="true" volatile="true" derived="true"
+	 * @model transient="true" volatile="true" derived="true"
 	 *        extendedMetaData="group='#monoMap'"
 	 * @generated
 	 */
