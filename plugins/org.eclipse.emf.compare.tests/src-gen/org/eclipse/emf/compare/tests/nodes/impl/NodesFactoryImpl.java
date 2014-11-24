@@ -84,6 +84,8 @@ public class NodesFactoryImpl extends EFactoryImpl implements NodesFactory {
 			case NodesPackage.NODE_FEATURE_MAP_CONTAINMENT: return createNodeFeatureMapContainment();
 			case NodesPackage.NODE_FEATURE_MAP_NON_CONTAINMENT: return createNodeFeatureMapNonContainment();
 			case NodesPackage.NODE_FEATURE_MAP_CONTAINMENT2: return createNodeFeatureMapContainment2();
+			case NodesPackage.MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT: return createMonoValuedNodeFeatureMapNonContainment();
+			case NodesPackage.FEATURE_MAP_WITH_SIMPLE_KEYS: return createFeatureMapWithSimpleKeys();
 			default:
 				throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
@@ -217,6 +219,26 @@ public class NodesFactoryImpl extends EFactoryImpl implements NodesFactory {
 	public NodeFeatureMapContainment2 createNodeFeatureMapContainment2() {
 		NodeFeatureMapContainment2Impl nodeFeatureMapContainment2 = new NodeFeatureMapContainment2Impl();
 		return nodeFeatureMapContainment2;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public MonoValuedNodeFeatureMapNonContainment createMonoValuedNodeFeatureMapNonContainment() {
+		MonoValuedNodeFeatureMapNonContainmentImpl monoValuedNodeFeatureMapNonContainment = new MonoValuedNodeFeatureMapNonContainmentImpl();
+		return monoValuedNodeFeatureMapNonContainment;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public FeatureMapWithSimpleKeys createFeatureMapWithSimpleKeys() {
+		FeatureMapWithSimpleKeysImpl featureMapWithSimpleKeys = new FeatureMapWithSimpleKeysImpl();
+		return featureMapWithSimpleKeys;
 	}
 
 	/**

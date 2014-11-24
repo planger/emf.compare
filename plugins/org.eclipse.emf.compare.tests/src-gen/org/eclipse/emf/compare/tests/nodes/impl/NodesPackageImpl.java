@@ -10,10 +10,14 @@
  */
 package org.eclipse.emf.compare.tests.nodes.impl;
 
+import org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys;
+import org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment;
 import org.eclipse.emf.compare.tests.nodes.Node;
+import org.eclipse.emf.compare.tests.nodes.NodeFeatureMapAttributes;
 import org.eclipse.emf.compare.tests.nodes.NodeFeatureMapContainment;
 import org.eclipse.emf.compare.tests.nodes.NodeFeatureMapContainment2;
 import org.eclipse.emf.compare.tests.nodes.NodeFeatureMapNonContainment;
+import org.eclipse.emf.compare.tests.nodes.NodeFeatureMapNonContainment2;
 import org.eclipse.emf.compare.tests.nodes.NodeMultiValueReference;
 import org.eclipse.emf.compare.tests.nodes.NodeMultiValuedAttribute;
 import org.eclipse.emf.compare.tests.nodes.NodeMultipleContainment;
@@ -137,6 +141,20 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	 * @generated
 	 */
 	private EClass nodeFeatureMapContainment2EClass = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EClass monoValuedNodeFeatureMapNonContainmentEClass = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EClass featureMapWithSimpleKeysEClass = null;
 
 	/**
 	 * Creates an instance of the model <b>Package</b>, registered with
@@ -537,6 +555,78 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EClass getMonoValuedNodeFeatureMapNonContainment() {
+		return monoValuedNodeFeatureMapNonContainmentEClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getMonoValuedNodeFeatureMapNonContainment_MonoMap() {
+		return (EAttribute)monoValuedNodeFeatureMapNonContainmentEClass.getEStructuralFeatures().get(0);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EReference getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey() {
+		return (EReference)monoValuedNodeFeatureMapNonContainmentEClass.getEStructuralFeatures().get(1);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EReference getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey() {
+		return (EReference)monoValuedNodeFeatureMapNonContainmentEClass.getEStructuralFeatures().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EClass getFeatureMapWithSimpleKeys() {
+		return featureMapWithSimpleKeysEClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getFeatureMapWithSimpleKeys_SimpleMap() {
+		return (EAttribute)featureMapWithSimpleKeysEClass.getEStructuralFeatures().get(0);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getFeatureMapWithSimpleKeys_FirstAttribute() {
+		return (EAttribute)featureMapWithSimpleKeysEClass.getEStructuralFeatures().get(1);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getFeatureMapWithSimpleKeys_SecondAttribute() {
+		return (EAttribute)featureMapWithSimpleKeysEClass.getEStructuralFeatures().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	public NodesFactory getNodesFactory() {
 		return (NodesFactory)getEFactoryInstance();
 	}
@@ -609,6 +699,16 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 		createEAttribute(nodeFeatureMapContainment2EClass, NODE_FEATURE_MAP_CONTAINMENT2__MAP2);
 		createEReference(nodeFeatureMapContainment2EClass, NODE_FEATURE_MAP_CONTAINMENT2__MULTIPLE);
 		createEReference(nodeFeatureMapContainment2EClass, NODE_FEATURE_MAP_CONTAINMENT2__SINGLE);
+
+		monoValuedNodeFeatureMapNonContainmentEClass = createEClass(MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT);
+		createEAttribute(monoValuedNodeFeatureMapNonContainmentEClass, MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__MONO_MAP);
+		createEReference(monoValuedNodeFeatureMapNonContainmentEClass, MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__FIRST_MONO_KEY);
+		createEReference(monoValuedNodeFeatureMapNonContainmentEClass, MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__SECOND_MONO_KEY);
+
+		featureMapWithSimpleKeysEClass = createEClass(FEATURE_MAP_WITH_SIMPLE_KEYS);
+		createEAttribute(featureMapWithSimpleKeysEClass, FEATURE_MAP_WITH_SIMPLE_KEYS__SIMPLE_MAP);
+		createEAttribute(featureMapWithSimpleKeysEClass, FEATURE_MAP_WITH_SIMPLE_KEYS__FIRST_ATTRIBUTE);
+		createEAttribute(featureMapWithSimpleKeysEClass, FEATURE_MAP_WITH_SIMPLE_KEYS__SECOND_ATTRIBUTE);
 	}
 
 	/**
@@ -651,6 +751,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 		nodeFeatureMapContainmentEClass.getESuperTypes().add(this.getNode());
 		nodeFeatureMapNonContainmentEClass.getESuperTypes().add(this.getNode());
 		nodeFeatureMapContainment2EClass.getESuperTypes().add(this.getNode());
+		monoValuedNodeFeatureMapNonContainmentEClass.getESuperTypes().add(this.getNode());
+		featureMapWithSimpleKeysEClass.getESuperTypes().add(this.getNode());
 
 		// Initialize classes and features; add operations and parameters
 		initEClass(nodeEClass, Node.class, "Node", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
@@ -703,6 +805,16 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 		initEReference(getNodeFeatureMapContainment2_Multiple(), this.getNodeMultipleContainment(), null, "multiple", null, 0, -1, NodeFeatureMapContainment2.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 		initEReference(getNodeFeatureMapContainment2_Single(), this.getNodeSingleValueContainment(), null, "single", null, 0, -1, NodeFeatureMapContainment2.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
+		initEClass(monoValuedNodeFeatureMapNonContainmentEClass, MonoValuedNodeFeatureMapNonContainment.class, "MonoValuedNodeFeatureMapNonContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getMonoValuedNodeFeatureMapNonContainment_MonoMap(), ecorePackage.getEFeatureMapEntry(), "monoMap", null, 0, -1, MonoValuedNodeFeatureMapNonContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey(), this.getNode(), null, "firstMonoKey", null, 1, 1, MonoValuedNodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey(), this.getNode(), null, "secondMonoKey", null, 1, 1, MonoValuedNodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+
+		initEClass(featureMapWithSimpleKeysEClass, FeatureMapWithSimpleKeys.class, "FeatureMapWithSimpleKeys", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getFeatureMapWithSimpleKeys_SimpleMap(), ecorePackage.getEFeatureMapEntry(), "simpleMap", null, 0, 1, FeatureMapWithSimpleKeys.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEAttribute(getFeatureMapWithSimpleKeys_FirstAttribute(), ecorePackage.getEString(), "firstAttribute", null, 0, -1, FeatureMapWithSimpleKeys.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEAttribute(getFeatureMapWithSimpleKeys_SecondAttribute(), ecorePackage.getEString(), "secondAttribute", null, 0, -1, FeatureMapWithSimpleKeys.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+
 		// Create resource
 		createResource(eNS_URI);
 
@@ -718,60 +830,96 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	 * @generated
 	 */
 	protected void createExtendedMetaDataAnnotations() {
-		String source = "http:///org/eclipse/emf/ecore/util/ExtendedMetaData"; //$NON-NLS-1$		
+		String source = "http:///org/eclipse/emf/ecore/util/ExtendedMetaData"; //$NON-NLS-1$	
 		addAnnotation
 		  (getNodeFeatureMapContainment_Map(), 
 		   source, 
 		   new String[] {
 			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
-		   });		
+		   });	
 		addAnnotation
 		  (getNodeFeatureMapContainment_FirstKey(), 
 		   source, 
 		   new String[] {
 			 "group", "#map" //$NON-NLS-1$ //$NON-NLS-2$
-		   });		
+		   });	
 		addAnnotation
 		  (getNodeFeatureMapContainment_SecondKey(), 
 		   source, 
 		   new String[] {
 			 "group", "#map" //$NON-NLS-1$ //$NON-NLS-2$
-		   });		
+		   });	
 		addAnnotation
 		  (getNodeFeatureMapNonContainment_MapNC(), 
 		   source, 
 		   new String[] {
 			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
-		   });		
+		   });	
 		addAnnotation
 		  (getNodeFeatureMapNonContainment_FirstKeyNC(), 
 		   source, 
 		   new String[] {
 			 "group", "#mapNC" //$NON-NLS-1$ //$NON-NLS-2$
-		   });		
+		   });	
 		addAnnotation
 		  (getNodeFeatureMapNonContainment_SecondKeyNC(), 
 		   source, 
 		   new String[] {
 			 "group", "#mapNC" //$NON-NLS-1$ //$NON-NLS-2$
-		   });		
+		   });	
 		addAnnotation
 		  (getNodeFeatureMapContainment2_Map2(), 
 		   source, 
 		   new String[] {
 			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
-		   });		
+		   });	
 		addAnnotation
 		  (getNodeFeatureMapContainment2_Multiple(), 
 		   source, 
 		   new String[] {
 			 "group", "#map2" //$NON-NLS-1$ //$NON-NLS-2$
-		   });		
+		   });	
 		addAnnotation
 		  (getNodeFeatureMapContainment2_Single(), 
 		   source, 
 		   new String[] {
 			 "group", "#map2" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getMonoValuedNodeFeatureMapNonContainment_MonoMap(), 
+		   source, 
+		   new String[] {
+			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey(), 
+		   source, 
+		   new String[] {
+			 "group", "#monoMap" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey(), 
+		   source, 
+		   new String[] {
+			 "group", "#monoMap" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getFeatureMapWithSimpleKeys_SimpleMap(), 
+		   source, 
+		   new String[] {
+			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getFeatureMapWithSimpleKeys_FirstAttribute(), 
+		   source, 
+		   new String[] {
+			 "group", "#simpleMap" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getFeatureMapWithSimpleKeys_SecondAttribute(), 
+		   source, 
+		   new String[] {
+			 "group", "#simpleMap" //$NON-NLS-1$ //$NON-NLS-2$
 		   });
 	}
 

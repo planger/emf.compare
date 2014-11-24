@@ -759,6 +759,134 @@ public interface NodesPackage extends EPackage {
 
 
 	/**
+	 * The meta object id for the '{@link org.eclipse.emf.compare.tests.nodes.impl.MonoValuedNodeFeatureMapNonContainmentImpl <em>Mono Valued Node Feature Map Non Containment</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.emf.compare.tests.nodes.impl.MonoValuedNodeFeatureMapNonContainmentImpl
+	 * @see org.eclipse.emf.compare.tests.nodes.impl.NodesPackageImpl#getMonoValuedNodeFeatureMapNonContainment()
+	 * @generated
+	 */
+	int MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT = 13;
+
+	/**
+	 * The feature id for the '<em><b>Name</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__NAME = NODE__NAME;
+
+	/**
+	 * The feature id for the '<em><b>Containment Ref1</b></em>' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__CONTAINMENT_REF1 = NODE__CONTAINMENT_REF1;
+
+	/**
+	 * The feature id for the '<em><b>Mono Map</b></em>' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__MONO_MAP = NODE_FEATURE_COUNT + 0;
+
+	/**
+	 * The feature id for the '<em><b>First Mono Key</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__FIRST_MONO_KEY = NODE_FEATURE_COUNT + 1;
+
+	/**
+	 * The feature id for the '<em><b>Second Mono Key</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__SECOND_MONO_KEY = NODE_FEATURE_COUNT + 2;
+
+	/**
+	 * The number of structural features of the '<em>Mono Valued Node Feature Map Non Containment</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT_FEATURE_COUNT = NODE_FEATURE_COUNT + 3;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.emf.compare.tests.nodes.impl.FeatureMapWithSimpleKeysImpl <em>Feature Map With Simple Keys</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.emf.compare.tests.nodes.impl.FeatureMapWithSimpleKeysImpl
+	 * @see org.eclipse.emf.compare.tests.nodes.impl.NodesPackageImpl#getFeatureMapWithSimpleKeys()
+	 * @generated
+	 */
+	int FEATURE_MAP_WITH_SIMPLE_KEYS = 14;
+
+	/**
+	 * The feature id for the '<em><b>Name</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int FEATURE_MAP_WITH_SIMPLE_KEYS__NAME = NODE__NAME;
+
+	/**
+	 * The feature id for the '<em><b>Containment Ref1</b></em>' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int FEATURE_MAP_WITH_SIMPLE_KEYS__CONTAINMENT_REF1 = NODE__CONTAINMENT_REF1;
+
+	/**
+	 * The feature id for the '<em><b>Simple Map</b></em>' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int FEATURE_MAP_WITH_SIMPLE_KEYS__SIMPLE_MAP = NODE_FEATURE_COUNT + 0;
+
+	/**
+	 * The feature id for the '<em><b>First Attribute</b></em>' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int FEATURE_MAP_WITH_SIMPLE_KEYS__FIRST_ATTRIBUTE = NODE_FEATURE_COUNT + 1;
+
+	/**
+	 * The feature id for the '<em><b>Second Attribute</b></em>' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int FEATURE_MAP_WITH_SIMPLE_KEYS__SECOND_ATTRIBUTE = NODE_FEATURE_COUNT + 2;
+
+	/**
+	 * The number of structural features of the '<em>Feature Map With Simple Keys</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int FEATURE_MAP_WITH_SIMPLE_KEYS_FEATURE_COUNT = NODE_FEATURE_COUNT + 3;
+
+	/**
 	 * Returns the meta object for class '{@link org.eclipse.emf.compare.tests.nodes.Node <em>Node</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -1153,6 +1281,92 @@ public interface NodesPackage extends EPackage {
 	EReference getNodeFeatureMapContainment2_Single();
 
 	/**
+	 * Returns the meta object for class '{@link org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment <em>Mono Valued Node Feature Map Non Containment</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Mono Valued Node Feature Map Non Containment</em>'.
+	 * @see org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment
+	 * @generated
+	 */
+	EClass getMonoValuedNodeFeatureMapNonContainment();
+
+	/**
+	 * Returns the meta object for the attribute list '{@link org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment#getMonoMap <em>Mono Map</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute list '<em>Mono Map</em>'.
+	 * @see org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment#getMonoMap()
+	 * @see #getMonoValuedNodeFeatureMapNonContainment()
+	 * @generated
+	 */
+	EAttribute getMonoValuedNodeFeatureMapNonContainment_MonoMap();
+
+	/**
+	 * Returns the meta object for the reference '{@link org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment#getFirstMonoKey <em>First Mono Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the reference '<em>First Mono Key</em>'.
+	 * @see org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment#getFirstMonoKey()
+	 * @see #getMonoValuedNodeFeatureMapNonContainment()
+	 * @generated
+	 */
+	EReference getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey();
+
+	/**
+	 * Returns the meta object for the reference '{@link org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment#getSecondMonoKey <em>Second Mono Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the reference '<em>Second Mono Key</em>'.
+	 * @see org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment#getSecondMonoKey()
+	 * @see #getMonoValuedNodeFeatureMapNonContainment()
+	 * @generated
+	 */
+	EReference getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey();
+
+	/**
+	 * Returns the meta object for class '{@link org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys <em>Feature Map With Simple Keys</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Feature Map With Simple Keys</em>'.
+	 * @see org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys
+	 * @generated
+	 */
+	EClass getFeatureMapWithSimpleKeys();
+
+	/**
+	 * Returns the meta object for the attribute list '{@link org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys#getSimpleMap <em>Simple Map</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute list '<em>Simple Map</em>'.
+	 * @see org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys#getSimpleMap()
+	 * @see #getFeatureMapWithSimpleKeys()
+	 * @generated
+	 */
+	EAttribute getFeatureMapWithSimpleKeys_SimpleMap();
+
+	/**
+	 * Returns the meta object for the attribute list '{@link org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys#getFirstAttribute <em>First Attribute</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute list '<em>First Attribute</em>'.
+	 * @see org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys#getFirstAttribute()
+	 * @see #getFeatureMapWithSimpleKeys()
+	 * @generated
+	 */
+	EAttribute getFeatureMapWithSimpleKeys_FirstAttribute();
+
+	/**
+	 * Returns the meta object for the attribute list '{@link org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys#getSecondAttribute <em>Second Attribute</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute list '<em>Second Attribute</em>'.
+	 * @see org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys#getSecondAttribute()
+	 * @see #getFeatureMapWithSimpleKeys()
+	 * @generated
+	 */
+	EAttribute getFeatureMapWithSimpleKeys_SecondAttribute();
+
+	/**
 	 * Returns the factory that creates the instances of the model.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -1495,6 +1709,74 @@ public interface NodesPackage extends EPackage {
 		 * @generated
 		 */
 		EReference NODE_FEATURE_MAP_CONTAINMENT2__SINGLE = eINSTANCE.getNodeFeatureMapContainment2_Single();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.emf.compare.tests.nodes.impl.MonoValuedNodeFeatureMapNonContainmentImpl <em>Mono Valued Node Feature Map Non Containment</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.emf.compare.tests.nodes.impl.MonoValuedNodeFeatureMapNonContainmentImpl
+		 * @see org.eclipse.emf.compare.tests.nodes.impl.NodesPackageImpl#getMonoValuedNodeFeatureMapNonContainment()
+		 * @generated
+		 */
+		EClass MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT = eINSTANCE.getMonoValuedNodeFeatureMapNonContainment();
+
+		/**
+		 * The meta object literal for the '<em><b>Mono Map</b></em>' attribute list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__MONO_MAP = eINSTANCE.getMonoValuedNodeFeatureMapNonContainment_MonoMap();
+
+		/**
+		 * The meta object literal for the '<em><b>First Mono Key</b></em>' reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__FIRST_MONO_KEY = eINSTANCE.getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey();
+
+		/**
+		 * The meta object literal for the '<em><b>Second Mono Key</b></em>' reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__SECOND_MONO_KEY = eINSTANCE.getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.emf.compare.tests.nodes.impl.FeatureMapWithSimpleKeysImpl <em>Feature Map With Simple Keys</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.emf.compare.tests.nodes.impl.FeatureMapWithSimpleKeysImpl
+		 * @see org.eclipse.emf.compare.tests.nodes.impl.NodesPackageImpl#getFeatureMapWithSimpleKeys()
+		 * @generated
+		 */
+		EClass FEATURE_MAP_WITH_SIMPLE_KEYS = eINSTANCE.getFeatureMapWithSimpleKeys();
+
+		/**
+		 * The meta object literal for the '<em><b>Simple Map</b></em>' attribute list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute FEATURE_MAP_WITH_SIMPLE_KEYS__SIMPLE_MAP = eINSTANCE.getFeatureMapWithSimpleKeys_SimpleMap();
+
+		/**
+		 * The meta object literal for the '<em><b>First Attribute</b></em>' attribute list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute FEATURE_MAP_WITH_SIMPLE_KEYS__FIRST_ATTRIBUTE = eINSTANCE.getFeatureMapWithSimpleKeys_FirstAttribute();
+
+		/**
+		 * The meta object literal for the '<em><b>Second Attribute</b></em>' attribute list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute FEATURE_MAP_WITH_SIMPLE_KEYS__SECOND_ATTRIBUTE = eINSTANCE.getFeatureMapWithSimpleKeys_SecondAttribute();
 
 	}
 

@@ -135,6 +135,14 @@ public class NodesAdapterFactory extends AdapterFactoryImpl {
 				return createNodeFeatureMapContainment2Adapter();
 			}
 			@Override
+			public Adapter caseMonoValuedNodeFeatureMapNonContainment(MonoValuedNodeFeatureMapNonContainment object) {
+				return createMonoValuedNodeFeatureMapNonContainmentAdapter();
+			}
+			@Override
+			public Adapter caseFeatureMapWithSimpleKeys(FeatureMapWithSimpleKeys object) {
+				return createFeatureMapWithSimpleKeysAdapter();
+			}
+			@Override
 			public Adapter defaultCase(EObject object) {
 				return createEObjectAdapter();
 			}
@@ -333,6 +341,34 @@ public class NodesAdapterFactory extends AdapterFactoryImpl {
 	 * @generated
 	 */
 	public Adapter createNodeFeatureMapContainment2Adapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment <em>Mono Valued Node Feature Map Non Containment</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment
+	 * @generated
+	 */
+	public Adapter createMonoValuedNodeFeatureMapNonContainmentAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys <em>Feature Map With Simple Keys</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eclipse.emf.compare.tests.nodes.FeatureMapWithSimpleKeys
+	 * @generated
+	 */
+	public Adapter createFeatureMapWithSimpleKeysAdapter() {
 		return null;
 	}
 
