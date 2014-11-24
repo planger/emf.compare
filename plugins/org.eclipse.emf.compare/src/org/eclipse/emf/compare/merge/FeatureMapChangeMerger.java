@@ -293,13 +293,18 @@ public class FeatureMapChangeMerger extends AbstractMerger {
 			final List<Object> list, final FeatureMap.Entry entry) {
 		final Object value = entry.getValue();
 		final EStructuralFeature key = entry.getEStructuralFeature();
-		((BasicFeatureMap)(Object)list).remove(key, value);
 		final Match expectedContainerMatch = comparison.getMatch((EObject)value);
-		if (rightToLeft) {
-			expectedContainerMatch.setLeft(null);
-		} else {
-			expectedContainerMatch.setRight(null);
+		((BasicFeatureMap)(Object)list).remove(key, value);
+
+		// remove from match if containment
+		if (((EReference)key).isContainment()) {
+			if (rightToLeft) {
+				expectedContainerMatch.setLeft(null);
+			} else {
+				expectedContainerMatch.setRight(null);
+			}
 		}
+
 	}
 
 	/**
