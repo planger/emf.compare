@@ -109,6 +109,22 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 
 	private MouseTrackListener mouseTrackListener;
 
+	private Listener contentUpdateListener;
+
+	/**
+	 * @param contentUpdateListener
+	 *            the contentUpdateListener to set
+	 */
+	public void setContentUpdateListener(Listener contentUpdateListener) {
+		this.contentUpdateListener = contentUpdateListener;
+	}
+
+	public void removeContentUpdateListener(Listener listener) {
+		if (contentUpdateListener.equals(listener)) {
+			contentUpdateListener = null;
+		}
+	}
+
 	/**
 	 * Creates a new {@link TreeContentMergeViewer} by calling the super constructor with the given
 	 * parameters.
@@ -136,6 +152,20 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 		buildControl(parent);
 		setContentProvider(new TreeContentMergeViewerContentProvider(config));
 		getCenterControl().addMouseTrackListener(getMouseTrackListener());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.EMFCompareContentMergeViewer#updateContent
+	 * (java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	protected void updateContent(Object ancestor, Object left, Object right) {
+		super.updateContent(ancestor, left, right);
+		if (contentUpdateListener != null) {
+			contentUpdateListener.handleEvent(new Event());
+		}
 	}
 
 	/**
@@ -349,6 +379,11 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 	 */
 	@Override
 	protected void paintCenter(GC g) {
+
+		// hack - refresh annotations before repainting
+		if (contentUpdateListener != null) {
+			contentUpdateListener.handleEvent(new Event());
+		}
 		TreeMergeViewer leftMergeViewer = getLeftMergeViewer();
 		TreeMergeViewer rightMergeViewer = getRightMergeViewer();
 
@@ -424,6 +459,8 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 			popup = new ModelCommentPopupDialog(parent, SWT.NO_FOCUS | SWT.ON_TOP, header, description);
 			popup.create();
 		}
+		popup.setHeader(header);
+		popup.setDescription(description);
 		popup.open();
 		popup.setLocation(point);
 	}
@@ -473,7 +510,7 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 	 * @param items
 	 * @return
 	 */
-	private List<TreeItem> getExpandedTreeItems(TreeItem[] items) {
+	public List<TreeItem> getExpandedTreeItems(TreeItem[] items) {
 		List<TreeItem> ret = newArrayList();
 		for (TreeItem item : items) {
 			ret.add(item);
@@ -670,6 +707,36 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 		private String description;
 
 		private String header;
+
+		/**
+		 * @return the description
+		 */
+		public String getDescription() {
+			return description;
+		}
+
+		/**
+		 * @param description
+		 *            the description to set
+		 */
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		/**
+		 * @return the header
+		 */
+		public String getHeader() {
+			return header;
+		}
+
+		/**
+		 * @param header
+		 *            the header to set
+		 */
+		public void setHeader(String header) {
+			this.header = header;
+		}
 
 		public ModelCommentPopupDialog(Shell parent, int shellStyle, String header, String description) {
 			super(parent, shellStyle, false, false, false, false, false, null, null);
