@@ -34,6 +34,7 @@ import org.eclipse.emf.compare.ide.ui.internal.configuration.EMFCompareConfigura
 import org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.EMFCompareContentMergeViewer;
 import org.eclipse.emf.compare.rcp.EMFCompareRCPPlugin;
 import org.eclipse.emf.compare.rcp.ui.contentmergeviewer.accessor.ICompareAccessor;
+import org.eclipse.emf.compare.rcp.ui.internal.contentmergeviewer.annotation.MergeItemAnnotation;
 import org.eclipse.emf.compare.rcp.ui.internal.mergeviewer.impl.AbstractMergeViewer;
 import org.eclipse.emf.compare.rcp.ui.internal.mergeviewer.impl.TreeMergeViewer;
 import org.eclipse.emf.compare.rcp.ui.internal.mergeviewer.item.impl.MergeViewerItem;
@@ -52,25 +53,33 @@ import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.dialogs.PopupDialog;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.forms.widgets.FormToolkit;
 
 /**
  * Specialized {@link org.eclipse.compare.contentmergeviewer.ContentMergeViewer} that uses
@@ -95,6 +104,10 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 	private AtomicBoolean fSyncExpandedState;
 
 	private double[] fBasicCenterCurve;
+
+	private ModelCommentPopupDialog popup;
+
+	private MouseTrackListener mouseTrackListener;
 
 	/**
 	 * Creates a new {@link TreeContentMergeViewer} by calling the super constructor with the given
@@ -122,6 +135,7 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 
 		buildControl(parent);
 		setContentProvider(new TreeContentMergeViewerContentProvider(config));
+		getCenterControl().addMouseTrackListener(getMouseTrackListener());
 	}
 
 	/**
@@ -368,6 +382,65 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 				}
 			}
 		}
+		for (TreeItem rightItem : rightItems) {
+			IMergeViewerItem rightData = (IMergeViewerItem)rightItem.getData();
+			if (rightData.getRightAnnotation() != null) {
+				drawAnnotation(g, rightItem);
+			}
+		}
+	}
+
+	private MouseTrackListener getMouseTrackListener() {
+		if (mouseTrackListener == null) {
+			final Tree tree = getRightMergeViewer().getStructuredViewer().getTree();
+			mouseTrackListener = new MouseTrackListener() {
+
+				public void mouseHover(MouseEvent e) {
+					// FIXME
+					TreeItem item = tree.getItem(new Point(e.x + 40, e.y));
+					if (item == null) {
+						return;
+					}
+					IMergeViewerItem itemData = (IMergeViewerItem)item.getData();
+					if (itemData != null && itemData.getRightAnnotation() != null) {
+						showMessage(tree.getShell(), tree.toDisplay(item.getBounds().x, item.getBounds().y),
+								itemData.getRightAnnotation().getHeader(), itemData.getRightAnnotation()
+										.getDescription());
+					}
+				}
+
+				public void mouseExit(MouseEvent e) {
+				}
+
+				public void mouseEnter(MouseEvent e) {
+				}
+			};
+		}
+		return mouseTrackListener;
+	}
+
+	protected void showMessage(Shell parent, Point point, String header, String description) {
+		if (popup == null) {
+			popup = new ModelCommentPopupDialog(parent, SWT.NO_FOCUS | SWT.ON_TOP, header, description);
+			popup.create();
+		}
+		popup.open();
+		popup.setLocation(point);
+	}
+
+	private void drawAnnotation(GC g, TreeItem rightItem) {
+		IMergeViewerItem rightData = (IMergeViewerItem)rightItem.getData();
+		MergeItemAnnotation rightAnnotation = rightData.getRightAnnotation();
+		Control control = getCenterControl();
+		Label imageLabel = new Label(control.getParent(), SWT.IMAGE_GIF);
+		imageLabel.setImage(rightAnnotation.getImage());
+
+		int x = control.getBounds().width / 2;
+		Rectangle rightBounds = rightItem.getBounds();
+		if (rightAnnotation.getImage() != null) {
+			g.drawImage(rightAnnotation.getImage(), x, rightBounds.y);
+		}
+
 	}
 
 	/**
@@ -584,6 +657,61 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 				fSyncExpandedState.set(false);
 			}
 		}
+	}
+
+	private class ModelCommentPopupDialog extends PopupDialog {
+
+		private FormToolkit toolkit;
+
+		private Composite composite;
+
+		private ScrolledComposite scrolledComposite;
+
+		private String description;
+
+		private String header;
+
+		public ModelCommentPopupDialog(Shell parent, int shellStyle, String header, String description) {
+			super(parent, shellStyle, false, false, false, false, false, null, null);
+			this.header = header;
+			this.description = description;
+		}
+
+		@Override
+		protected Control createDialogArea(Composite parent) {
+			toolkit = new FormToolkit(getShell().getDisplay());
+
+			scrolledComposite = new ScrolledComposite(parent, SWT.V_SCROLL);
+			scrolledComposite.setExpandHorizontal(true);
+			scrolledComposite.setExpandVertical(true);
+			toolkit.adapt(scrolledComposite);
+
+			composite = toolkit.createComposite(scrolledComposite, SWT.NONE);
+			composite.setLayout(new GridLayout());
+			scrolledComposite.setContent(composite);
+
+			Label headerLabel = toolkit.createLabel(composite, header);
+			headerLabel.setFont(JFaceResources.getFontRegistry().getBold("")); //$NON-NLS-1$
+			toolkit.createLabel(composite, description);
+			return scrolledComposite;
+		}
+
+		public void setLocation(Point location) {
+			Rectangle bounds = getShell().getBounds();
+			Rectangle monitorBounds = getShell().getMonitor().getClientArea();
+			// ensure the popup fits on the shell's monitor
+			bounds.x = contrain(location.x, monitorBounds.x, monitorBounds.x + monitorBounds.width
+					- bounds.width);
+			bounds.y = contrain(location.y, monitorBounds.y, monitorBounds.y + monitorBounds.height
+					- bounds.height);
+
+			getShell().setLocation(new Point(bounds.x, bounds.y));
+		}
+
+		private int contrain(int value, int min, int max) {
+			return Math.max(min, Math.min(max, value));
+		}
+
 	}
 
 }

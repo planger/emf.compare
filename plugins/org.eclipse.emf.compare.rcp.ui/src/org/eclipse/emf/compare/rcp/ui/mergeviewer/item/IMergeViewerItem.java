@@ -14,6 +14,7 @@ import com.google.common.base.Predicate;
 
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.compare.Diff;
+import org.eclipse.emf.compare.rcp.ui.internal.contentmergeviewer.annotation.MergeItemAnnotation;
 import org.eclipse.emf.compare.rcp.ui.mergeviewer.IMergeViewer.MergeViewerSide;
 import org.eclipse.emf.compare.rcp.ui.structuremergeviewer.groups.IDifferenceGroupProvider;
 import org.eclipse.emf.ecore.EObject;
@@ -79,6 +80,14 @@ public interface IMergeViewerItem extends Adapter {
 	 * @return the side of the Diff.
 	 */
 	MergeViewerSide getSide();
+
+	MergeItemAnnotation getLeftAnnotation();
+
+	MergeItemAnnotation getRightAnnotation();
+
+	void setLeftAnnotation(MergeItemAnnotation leftAnnotation);
+
+	void setRightAnnotation(MergeItemAnnotation rightAnnotation);
 
 	/**
 	 * Returns true if the Item is an insertion point, false otherwise.

@@ -47,6 +47,7 @@ import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.compare.ResourceAttachmentChange;
 import org.eclipse.emf.compare.internal.spec.EObjectUtil;
 import org.eclipse.emf.compare.internal.utils.DiffUtil;
+import org.eclipse.emf.compare.rcp.ui.internal.contentmergeviewer.annotation.MergeItemAnnotation;
 import org.eclipse.emf.compare.rcp.ui.internal.util.MergeViewerUtil;
 import org.eclipse.emf.compare.rcp.ui.mergeviewer.IMergeViewer.MergeViewerSide;
 import org.eclipse.emf.compare.rcp.ui.mergeviewer.item.IMergeViewerItem;
@@ -80,6 +81,42 @@ public class MergeViewerItem extends AdapterImpl implements IMergeViewerItem {
 	private final MergeViewerSide fSide;
 
 	private final AdapterFactory fAdapterFactory;
+
+	// parent - see https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#comment-info
+	private MergeItemAnnotation leftAnnotation;
+
+	/**
+	 * @return the leftAnnotation
+	 */
+	public MergeItemAnnotation getLeftAnnotation() {
+		return leftAnnotation;
+	}
+
+	/**
+	 * @param leftAnnotation
+	 *            the leftAnnotation to set
+	 */
+	public void setLeftAnnotation(MergeItemAnnotation leftAnnotation) {
+		this.leftAnnotation = leftAnnotation;
+	}
+
+	/**
+	 * @return the rightAnnotation
+	 */
+	public MergeItemAnnotation getRightAnnotation() {
+		return rightAnnotation;
+	}
+
+	/**
+	 * @param rightAnnotation
+	 *            the rightAnnotation to set
+	 */
+	public void setRightAnnotation(MergeItemAnnotation rightAnnotation) {
+		this.rightAnnotation = rightAnnotation;
+	}
+
+	// review - see https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#comment-info
+	private MergeItemAnnotation rightAnnotation;
 
 	public MergeViewerItem(Comparison comparison, Diff diff, Object left, Object right, Object ancestor,
 			MergeViewerSide side, AdapterFactory adapterFactory) {
