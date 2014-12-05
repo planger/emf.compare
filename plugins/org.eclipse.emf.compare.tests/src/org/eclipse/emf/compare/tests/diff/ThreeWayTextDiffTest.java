@@ -342,25 +342,35 @@ public class ThreeWayTextDiffTest {
 	}
 
 	@Test
-	public void addDifferentLinesIndirectlyAtSameLineInMultiLineText() throws IOException {
+	public void changeAndAddDifferentLinesOnBothSides() throws IOException {
 		final String origin = "They don't call it a Quarter Pounder with Cheese?" + NL //
 				+ "They call it a Royale with Cheese." + NL //
 				+ "Royale with Cheese." + NL //
 				+ "That's right.";
 
 		final String left = "They don't call it a Quarter Pounder with Cheese?" + NL //
-				+ "Nah, they got the metric system, they wouldn't know what a Quarter Pounder is." + NL // added
+				+ "Nah, they got the metric system.1" + NL // added
+				+ "Nah, they got the metric system.2" + NL // added
+				+ "Nah, they got the metric system.3" + NL // added
 				+ "They call it a \"Royale\" with Cheese." + NL // changed
 				+ "Royale with Cheese." + NL //
 				+ "That's right.";
 
-		final String right = "" // removed
-				+ "What do they call it?" + NL // added
-				+ "They call it a Royale with Cheese." + NL //
+		final String right = "What do they call it?" + NL // changed
+				+ "They call it a Royale with Cheese." + NL//
 				+ "Royale with Cheese." + NL //
-				+ "That's right.";
+				+ "That's right!"; // changed
 
-		assertConflictingBidirectional(origin, left, right);
+		final String merged = "What do they call it?" + NL // changed line 1 from right
+				+ "Nah, they got the metric system.1" + NL // added left
+				+ "Nah, they got the metric system.2" + NL // added left
+				+ "Nah, they got the metric system.3" + NL // added left
+				+ "They call it a \"Royale\" with Cheese." + NL// changed line 3 from left
+				+ "Royale with Cheese." + NL // unchanged on both sides
+				+ "That's right!"; // changed right
+
+		assertNonConflictingBidirectional(origin, left, right);
+		assertMergedBidirectional(origin, left, right, merged);
 	}
 
 	@Test
@@ -389,6 +399,97 @@ public class ThreeWayTextDiffTest {
 				+ "Royale with Cheese." + NL //
 				+ "That's right." + NL //
 				+ "What do they call a Big Mac?"; // added right;
+
+		assertNonConflictingBidirectional(origin, left, right);
+		assertMergedBidirectional(origin, left, right, merged);
+	}
+
+	@Test
+	public void addSameLineAtSameLineOnBothSidesInMultiLineText() throws IOException {
+		final String origin = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String left = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese." + NL // added
+				+ "Royale with Cheese." + NL //
+				+ "That's right!!!"; // changed
+
+		final String right = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese." + NL // added
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String merged = left; // right didn't contribute a unique change
+
+		assertNonConflictingBidirectional(origin, left, right);
+		assertMergedBidirectional(origin, left, right, merged);
+	}
+
+	@Test
+	public void changeSameLineToSameContentOnBothSidesInMultiLineText() throws IOException {
+		final String origin = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese." + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String left = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese!!!" + NL // changed
+				+ "Royale with Cheese." + NL //
+				+ "That's right!!!" + NL // changed
+				+ "They call it a Royale with Cheese!!!"; // added
+
+		final String right = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese!!!" + NL // changed
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String merged = left; // right didn't contribute a unique change
+
+		assertNonConflictingBidirectional(origin, left, right);
+		assertMergedBidirectional(origin, left, right, merged);
+	}
+
+	@Test
+	public void removeAndChangeVersusSameChangeInMultiLineText() throws IOException {
+		final String origin = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese." + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String left = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right!"; // changed
+
+		final String right = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese." + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right!"; // changed
+
+		final String merged = left; // right didn't contribute a unique change
+
+		assertNonConflictingBidirectional(origin, left, right);
+		assertMergedBidirectional(origin, left, right, merged);
+	}
+
+	@Test
+	public void removeSameLineOnBothSidesInMultiLineText() throws IOException {
+		final String origin = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "They call it a Royale with Cheese." + NL //
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String left = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "" // removed
+				+ "Royale with Cheese." + NL //
+				+ "That's right!!!"; // changed
+
+		final String right = "They don't call it a Quarter Pounder with Cheese?" + NL //
+				+ "" // removed
+				+ "Royale with Cheese." + NL //
+				+ "That's right.";
+
+		final String merged = left; // right didn't contribute a unique change
 
 		assertNonConflictingBidirectional(origin, left, right);
 		assertMergedBidirectional(origin, left, right, merged);

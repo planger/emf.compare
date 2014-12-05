@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.emf.compare.internal;
 
+import com.google.common.base.Optional;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,6 +49,19 @@ public class ThreeWayTextDiff {
 
 	/** The line operations of the right-hand side. */
 	private final LineOperations rightOperations;
+	
+	/*
+	 * Maybe change this whole stuff:
+	 * Introduce class ThreeWayLineOperations which maps left diffs to right diffs and vice versa
+	 * Building this map would look similar to current filtering before computing the patch
+	 * Each Mapping (group) should consist of either:
+	 * equal - equal
+	 * equal - insert* (only at the beginning of the text)
+	 * insert* - insert* (only at the beginning of the text) - conflict if not equal inserts 
+	 * delete - delete
+	 * equal - delete(/insert)*
+	 * delete(/insert)* - delete(/insert)* - conflict if not equal inserts and deletes
+	 */
 
 	/**
 	 * Constructs a {@link ThreeWayTextDiff} for the given {@code origin} of a plain text and the two
@@ -108,7 +123,7 @@ public class ThreeWayTextDiff {
 	 */
 	public boolean isConflicting() {
 		boolean isConflicting = false;
-		final int numberOfLinesInOrigin = getNumberOfLinesInOrigin();
+		final int numberOfLinesInOrigin = getNumberOfLines(getOrigin());
 		for (int currentIndex = 0; currentIndex < numberOfLinesInOrigin; currentIndex++) {
 			if (isConflicting(currentIndex)) {
 				isConflicting = true;
@@ -119,13 +134,25 @@ public class ThreeWayTextDiff {
 	}
 
 	/**
-	 * Returns the number of lines of the {@link #origin original text}.
+	 * Returns the number of lines of the given {@code string}.
 	 * 
-	 * @return The number of lines of origin.
+	 * @param string
+	 *            The string to get number of lines from.
+	 * @return The number of lines of {@code string}.
 	 */
-	private int getNumberOfLinesInOrigin() {
-		final String[] originLines = nullToEmpty(getOrigin()).split(NL);
-		return originLines.length;
+	private int getNumberOfLines(String string) {
+		return getLines(nullToEmpty(string)).length;
+	}
+
+	/**
+	 * Returns the lines of the given {@code string} in the form of a String array.
+	 * 
+	 * @param string
+	 *            The string to get the lines of.
+	 * @return The lines of {@code string}.
+	 */
+	private String[] getLines(String string) {
+		return string.split(NL);
 	}
 
 	/**
@@ -137,7 +164,8 @@ public class ThreeWayTextDiff {
 	 * @return <code>true</code> if there are conflicting changes, <code>false</code> otherwise.
 	 */
 	private boolean isConflicting(int lineIndex) {
-		return isInsertInsertAt(lineIndex) || isInsertDeleteAt(lineIndex) || isDeleteInsertAt(lineIndex);
+		return (isInsertDeleteAt(lineIndex) || isDeleteInsertAt(lineIndex) || isInsertInsertAt(lineIndex))
+				&& !isEqualLineContentAt(lineIndex);
 	}
 
 	/**
@@ -151,6 +179,22 @@ public class ThreeWayTextDiff {
 	private boolean isInsertInsertAt(int lineIndex) {
 		return leftOperations.isInsertAtOriginLineIndex(lineIndex)
 				&& rightOperations.isInsertAtOriginLineIndex(lineIndex);
+	}
+
+	/**
+	 * Specifies whether the line indicated by the {@code lineIndex} of the <i>original</i> version has the
+	 * same content in the <i>revised</i> left- and right-hand side version of the text.
+	 * 
+	 * @param lineIndex
+	 *            The line index of the original version of the line to check.
+	 * @return <code>true</code> if the line has the same content, <code>false</code> otherwise.
+	 */
+	private boolean isEqualLineContentAt(int lineIndex) {
+		int leftRevisedLineIndex = leftOperations.getRevisedLineIndexForOriginLineIndex(lineIndex);
+		int rightRevisedLineIndex = rightOperations.getRevisedLineIndexForOriginLineIndex(lineIndex);
+		final Optional<String> leftLine = leftOperations.getRevised(leftRevisedLineIndex);
+		final Optional<String> rightLine = rightOperations.getRevised(rightRevisedLineIndex);
+		return leftLine.or(NL).equals(rightLine.or(NL));
 	}
 
 	/**
@@ -193,7 +237,7 @@ public class ThreeWayTextDiff {
 	 * @return A merged version of left and right.
 	 */
 	public String getMerged() {
-		final String patchedLeft = rightOperations.apply(getLeft());
+		final String patchedLeft = rightOperations.merge(leftOperations);
 		final String merged = nullIfUnset(patchedLeft);
 		return merged;
 	}
@@ -299,6 +343,27 @@ public class ThreeWayTextDiff {
 		}
 
 		/**
+		 * Returns the line at {@code lineIndex} of the revised version of the text.
+		 * <p>
+		 * The line might be absent if {@code lineIndex} is greater or equal to the number of lines in the
+		 * revised text.
+		 * </p
+		 * 
+		 * @param lineIndex
+		 *            The line index of the <i>revised</i> version of the text.
+		 * @return The line at {@code lineIndex} revised version.
+		 */
+		private Optional<String> getRevised(int lineIndex) {
+			final String[] lineArray = revised.split(NL);
+			if (lineArray.length > lineIndex) {
+				return Optional.of(lineArray[lineIndex]);
+			} else {
+				return Optional.absent();
+			}
+
+		}
+
+		/**
 		 * Initializes the list of operations.
 		 */
 		private void initialize() {
@@ -327,7 +392,7 @@ public class ThreeWayTextDiff {
 		 *            The diff to add line operations of.
 		 */
 		private void addLineOperations(Diff diff) {
-			final int numberOfLines = getNumberOfLines(diff);
+			final int numberOfLines = getNumberOfAffectedLines(diff);
 			for (int i = 0; i < numberOfLines; i++) {
 				operations.add(diff.operation);
 			}
@@ -340,29 +405,135 @@ public class ThreeWayTextDiff {
 		 *            The diff to get the number of inserted, deleted, or equal lines for.
 		 * @return The number of inserted, deleted, or equal lines for {@code diff}.
 		 */
-		private int getNumberOfLines(Diff diff) {
-			return diff.text.split(NL).length;
+		private int getNumberOfAffectedLines(Diff diff) {
+			return getNumberOfLines(diff.text);
 		}
 
 		/**
-		 * Applies the line operations to the given {@code original} text.
+		 * Merges the line operations with the given {@code oppositeOperations} and returns the merged text.
 		 * 
-		 * @param original
-		 *            The text to apply the {@code patches} to.
-		 * @return The patched version of {@code origin}.
+		 * @param oppositeOperations
+		 *            The opposite line operations to merge with.
+		 * @return The merged text.
 		 */
-		public String apply(String original) {
-			final LinkedList<Patch> patches = computePatches();
-			return (String)lbDiff.patch_apply(patches, nullToEmpty(original))[0];
+		public String merge(LineOperations oppositeOperations) {
+			final LinkedList<Diff> filteredDiffs = getDiffsWithoutDuplicates(oppositeOperations);
+			final LinkedList<Patch> patches = lbDiff.patch_make(filteredDiffs);
+			final String base = oppositeOperations.getRevised();
+			return applyPatches(patches, base);
+		}
+
+		private LinkedList<Diff> getDiffsWithoutDuplicates(LineOperations oppositeOperations) {
+			final LinkedList<Diff> filteredDiffs = new LinkedList<Diff>();
+
+			final LinkedList<Diff> myDiffs = this.getFlattenedDiffs();
+			final LinkedList<Diff> oppositeDiffs = oppositeOperations.getFlattenedDiffs();
+
+			int myDiffIndex = 0;
+			int oppositeDiffIndex = 0;
+			while (myDiffIndex < myDiffs.size()) {
+				final Diff myDiff = myDiffs.get(myDiffIndex);
+
+				// move down? out of this while
+				if (oppositeDiffs.size() <= oppositeDiffIndex) {
+					myDiffIndex++;
+					filteredDiffs.add(myDiff);
+					continue;
+				}
+
+				final Diff oppositeDiff = oppositeDiffs.get(oppositeDiffIndex);
+				switch (myDiff.operation) {
+					case EQUAL:
+						switch (oppositeDiff.operation) {
+							case INSERT:
+								oppositeDiffIndex++;
+								break;
+							default:
+								myDiffIndex++;
+								oppositeDiffIndex++;
+								filteredDiffs.add(myDiff);
+								break;
+						}
+						break;
+					case INSERT:
+						switch (oppositeDiff.operation) {
+							case INSERT:
+								myDiffIndex++;
+								oppositeDiffIndex++;
+								if (!myDiff.text.equals(oppositeDiff.text)) {
+									filteredDiffs.add(myDiff);
+								}
+								break;
+							default:
+								myDiffIndex++;
+								filteredDiffs.add(myDiff);
+								break;
+						}
+						break;
+					case DELETE:
+						switch (oppositeDiff.operation) {
+							case EQUAL:
+								myDiffIndex++;
+								oppositeDiffIndex++;
+								filteredDiffs.add(myDiff);
+								break;
+							case INSERT:
+								oppositeDiffIndex++;
+								break;
+							case DELETE:
+								myDiffIndex++;
+								oppositeDiffIndex++;
+								if (!myDiff.text.equals(oppositeDiff.text)) {
+									filteredDiffs.add(myDiff);
+								}
+								break;
+						}
+						break;
+				}
+			}
+			return filteredDiffs;
 		}
 
 		/**
-		 * Computes and returns patches for this line operations.
+		 * Computes a flattened representation of the {@link #diffs} and returns them.
+		 * <p>
+		 * {@link Diff Text differences} may represent changes that span across multiple lines. To enable
+		 * iterating the differences in a <i>line-wise</i> manner, we compute a flattened list out of these
+		 * differences so that each difference represents the change of one line only.
+		 * </p>
 		 * 
-		 * @return The computed patches.
+		 * @return The flattened differences.
 		 */
-		private LinkedList<Patch> computePatches() {
-			return lbDiff.patch_make(diffs);
+		public LinkedList<Diff> getFlattenedDiffs() {
+			final LinkedList<Diff> flattenedDiffs = new LinkedList<Diff>();
+			for (Diff diff : diffs) {
+				String[] lines = getLines(diff.text);
+				for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+					final String line;
+					final boolean isLastLine = lineIndex >= lines.length - 1;
+					final boolean endsWithNewLine = diff.text.endsWith(NL);
+					if (!isLastLine || endsWithNewLine) {
+						line = lines[lineIndex] + NL;
+					} else {
+						line = lines[lineIndex];
+					}
+					flattenedDiffs.add(new Diff(diff.operation, line));
+				}
+			}
+			return flattenedDiffs;
+		}
+
+		/**
+		 * Applies the given {@code patches} to the given {@code base} text.
+		 * 
+		 * @param patches
+		 *            The patches to apply.
+		 * @param base
+		 *            The base text to apply {@code patches} to.
+		 * @return The resulting string after applying {@code patches} to {@code base}.
+		 */
+		private String applyPatches(final LinkedList<Patch> patches, final String base) {
+			return (String)lbDiff.patch_apply(patches, nullToEmpty(base))[0];
 		}
 
 		/**
@@ -426,13 +597,16 @@ public class ThreeWayTextDiff {
 		 *            The line index of the origin version of the text.
 		 * @return The line in the revised version that corresponds to the given line in the origin version.
 		 */
-		public int getRevisedLineIndexForOriginLineIndex(int originLineIndex) {
+		private int getRevisedLineIndexForOriginLineIndex(int originLineIndex) {
 			int currentOriginLineIndex = 0;
 			int lineIndex = 0;
 			while (currentOriginLineIndex < originLineIndex) {
 				final Operation operation = getOperation(lineIndex);
 				if (!isInsert(operation)) {
 					currentOriginLineIndex++;
+				}
+				if (isDelete(operation)) {
+					lineIndex++;
 				}
 				lineIndex++;
 			}
