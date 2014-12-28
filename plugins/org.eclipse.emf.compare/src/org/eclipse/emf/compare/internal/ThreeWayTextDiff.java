@@ -10,16 +10,16 @@
  *******************************************************************************/
 package org.eclipse.emf.compare.internal;
 
-import com.google.common.base.Optional;
-
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.emf.compare.internal.dmp.LineBasedDiff;
 import org.eclipse.emf.compare.internal.dmp.diff_match_patch.Diff;
 import org.eclipse.emf.compare.internal.dmp.diff_match_patch.Operation;
-import org.eclipse.emf.compare.internal.dmp.diff_match_patch.Patch;
 
 /**
  * Three-way differencing utility for plain text.
@@ -44,48 +44,96 @@ public class ThreeWayTextDiff {
 	/** Constant for new line String. */
 	private static final String NL = "\n"; //$NON-NLS-1$
 
-	/** The line operations of the left-hand side. */
-	private final LineOperations leftOperations;
+	/** The left-hand side line operations. */
+	private LineDifferences leftLineOperations;
 
-	/** The line operations of the right-hand side. */
-	private final LineOperations rightOperations;
-	
-	/*
-	 * Maybe change this whole stuff:
-	 * Introduce class ThreeWayLineOperations which maps left diffs to right diffs and vice versa
-	 * Building this map would look similar to current filtering before computing the patch
-	 * Each Mapping (group) should consist of either:
-	 * equal - equal
-	 * equal - insert* (only at the beginning of the text)
-	 * insert* - insert* (only at the beginning of the text) - conflict if not equal inserts 
-	 * delete - delete
-	 * equal - delete(/insert)*
-	 * delete(/insert)* - delete(/insert)* - conflict if not equal inserts and deletes
-	 */
+	/** The right-hand side line operations. */
+	private LineDifferences rightLineOperations;
+
+	/** The computed three-way line differences. */
+	private LinkedList<ThreeWayLineDifference> threeWayLineDifferences;
 
 	/**
 	 * Constructs a {@link ThreeWayTextDiff} for the given {@code origin} of a plain text and the two
 	 * potentially modified versions of it, {@code left} and {@code right}.
 	 * 
 	 * @param origin
-	 *            The original version of the plain text.
+	 *            The common ancestor version of the plain text.
 	 * @param left
-	 *            The potentially modified left version of the origin.
+	 *            The potentially modified left-hand side version of the common ancestor.
 	 * @param right
-	 *            The potentially modified right version of the origin.
+	 *            The potentially modified right-hand side version of the common ancestor.
 	 */
 	public ThreeWayTextDiff(String origin, String left, String right) {
-		this.leftOperations = new LineOperations(origin, left);
-		this.rightOperations = new LineOperations(origin, right);
+		this.leftLineOperations = new LineDifferences(origin, left);
+		this.rightLineOperations = new LineDifferences(origin, right);
+		computeThreeWayLineDifferences();
+	}
+
+	private void computeThreeWayLineDifferences() {
+		threeWayLineDifferences = new LinkedList<ThreeWayLineDifference>();
+		try {
+			String originLine;
+			final Iterator<Diff> leftDiffIterator = leftLineOperations.diffs.iterator();
+			final Iterator<Diff> rightDiffIterator = leftLineOperations.diffs.iterator();
+			final BufferedReader originReader = createBufferedReader(getOrigin());
+			while ((originLine = originReader.readLine()) != null) {
+				final ThreeWayLineDifference lineDifference = computeThreeWayLineDifference(originLine,
+						leftDiffIterator, rightDiffIterator);
+				threeWayLineDifferences.add(lineDifference);
+			}
+			originReader.close();
+		} catch (IOException e) {
+			// must never happen as we read strings
+		}
+	}
+
+	private ThreeWayLineDifference computeThreeWayLineDifference(final String originLine,
+			final Iterator<Diff> leftDiffIterator, final Iterator<Diff> rightDiffIterator) {
+
+		final ThreeWayLineDifference threeWayLineDifference = new ThreeWayLineDifference(originLine);
+
+		if (leftDiffIterator.hasNext()) {
+			boolean hitEqualForOriginLine = false;
+			for (Diff leftDiff = leftDiffIterator.next(); leftDiffIterator.hasNext()
+					&& !isDeleteOtherLine(originLine, leftDiff) && !isEqualOtherLine(originLine, leftDiff)
+					&& !hitEqualForOriginLine; leftDiff = leftDiffIterator.next()) {
+				threeWayLineDifference.addLeftDiff(leftDiff);
+				hitEqualForOriginLine = isEqualSameLine(originLine, leftDiff);
+			}
+		}
+
+		for (Diff rightDiff = rightDiffIterator.next(); rightDiffIterator.hasNext()
+				&& !isEqualSameLine(originLine, rightDiff); rightDiff = rightDiffIterator.next()) {
+			threeWayLineDifference.addRightDiff(rightDiff);
+
+		}
+		return threeWayLineDifference;
+	}
+
+	private boolean isEqualSameLine(final String line, Diff diff) {
+		return diff != null && Operation.EQUAL.equals(diff.operation) && line.equals(diff.text);
+	}
+
+	private boolean isEqualOtherLine(final String line, Diff diff) {
+		return diff != null && Operation.EQUAL.equals(diff.operation) && !line.equals(diff.text);
+	}
+
+	private boolean isDeleteSameLine(final String line, Diff diff) {
+		return diff != null && Operation.DELETE.equals(diff.operation) && line.equals(diff.text);
+	}
+
+	private boolean isDeleteOtherLine(final String line, Diff diff) {
+		return diff != null && Operation.DELETE.equals(diff.operation) && !line.equals(diff.text);
 	}
 
 	/**
-	 * Returns the original version.
+	 * Returns the common ancestor version.
 	 * 
-	 * @return The original version.
+	 * @return The common ancestor version.
 	 */
 	public String getOrigin() {
-		return leftOperations.getOrigin();
+		return leftLineOperations.getOrigin();
 	}
 
 	/**
@@ -94,7 +142,7 @@ public class ThreeWayTextDiff {
 	 * @return The left version.
 	 */
 	public String getLeft() {
-		return leftOperations.getRevised();
+		return leftLineOperations.getRevised();
 	}
 
 	/**
@@ -103,7 +151,7 @@ public class ThreeWayTextDiff {
 	 * @return The right version.
 	 */
 	public String getRight() {
-		return rightOperations.getRevised();
+		return rightLineOperations.getRevised();
 	}
 
 	/**
@@ -114,113 +162,12 @@ public class ThreeWayTextDiff {
 	 * and is deleted on the other side, or no total order of lines can be found (e.g., two additions of new
 	 * lines at the same original line).
 	 * </p>
-	 * <p>
-	 * When considering each change as a deletion and addition of a line, the conflict detection boils down to
-	 * finding additions on both sides that are inserted before or after the same line.
-	 * </p>
 	 * 
 	 * @return <code>true</code> if left and right is in conflict; <code>false</code> otherwise.
 	 */
 	public boolean isConflicting() {
-		boolean isConflicting = false;
-		final int numberOfLinesInOrigin = getNumberOfLines(getOrigin());
-		for (int currentIndex = 0; currentIndex < numberOfLinesInOrigin; currentIndex++) {
-			if (isConflicting(currentIndex)) {
-				isConflicting = true;
-				break;
-			}
-		}
-		return isConflicting;
-	}
-
-	/**
-	 * Returns the number of lines of the given {@code string}.
-	 * 
-	 * @param string
-	 *            The string to get number of lines from.
-	 * @return The number of lines of {@code string}.
-	 */
-	private int getNumberOfLines(String string) {
-		return getLines(nullToEmpty(string)).length;
-	}
-
-	/**
-	 * Returns the lines of the given {@code string} in the form of a String array.
-	 * 
-	 * @param string
-	 *            The string to get the lines of.
-	 * @return The lines of {@code string}.
-	 */
-	private String[] getLines(String string) {
-		return string.split(NL);
-	}
-
-	/**
-	 * Specifies whether there are conflicting changes in {@link #left} or {@link #right} at the
-	 * {@code lineIndex} denoting the line of the {@link #origin}.
-	 * 
-	 * @param lineIndex
-	 *            The line index of {@link #origin}.
-	 * @return <code>true</code> if there are conflicting changes, <code>false</code> otherwise.
-	 */
-	private boolean isConflicting(int lineIndex) {
-		return (isInsertDeleteAt(lineIndex) || isDeleteInsertAt(lineIndex) || isInsertInsertAt(lineIndex))
-				&& !isEqualLineContentAt(lineIndex);
-	}
-
-	/**
-	 * Specifies whether there is an insert-insert conflict at the {@code lineIndex} denoting the line of the
-	 * {@link #origin}.
-	 * 
-	 * @param lineIndex
-	 *            The line index of {@link #origin}.
-	 * @return <code>true</code> if there is an insert-insert conflict, <code>false</code> otherwise.
-	 */
-	private boolean isInsertInsertAt(int lineIndex) {
-		return leftOperations.isInsertAtOriginLineIndex(lineIndex)
-				&& rightOperations.isInsertAtOriginLineIndex(lineIndex);
-	}
-
-	/**
-	 * Specifies whether the line indicated by the {@code lineIndex} of the <i>original</i> version has the
-	 * same content in the <i>revised</i> left- and right-hand side version of the text.
-	 * 
-	 * @param lineIndex
-	 *            The line index of the original version of the line to check.
-	 * @return <code>true</code> if the line has the same content, <code>false</code> otherwise.
-	 */
-	private boolean isEqualLineContentAt(int lineIndex) {
-		int leftRevisedLineIndex = leftOperations.getRevisedLineIndexForOriginLineIndex(lineIndex);
-		int rightRevisedLineIndex = rightOperations.getRevisedLineIndexForOriginLineIndex(lineIndex);
-		final Optional<String> leftLine = leftOperations.getRevised(leftRevisedLineIndex);
-		final Optional<String> rightLine = rightOperations.getRevised(rightRevisedLineIndex);
-		return leftLine.or(NL).equals(rightLine.or(NL));
-	}
-
-	/**
-	 * Specifies whether there is an insert-delete conflict (left-hand side insert and right-hand side delete)
-	 * at the {@code lineIndex} denoting the line of the {@link #origin}.
-	 * 
-	 * @param lineIndex
-	 *            The line index of {@link #origin}.
-	 * @return <code>true</code> if there is an insert-delete conflict, <code>false</code> otherwise.
-	 */
-	private boolean isInsertDeleteAt(int lineIndex) {
-		return leftOperations.isChangedAtOriginLineIndex(lineIndex)
-				&& rightOperations.isDeleteAtOriginLineIndex(lineIndex);
-	}
-
-	/**
-	 * Specifies whether there is an delete-insert conflict (left-hand side delete and right-hand side insert)
-	 * at the {@code lineIndex} denoting the line of the {@link #origin}.
-	 * 
-	 * @param lineIndex
-	 *            The line index of {@link #origin}.
-	 * @return <code>true</code> if there is an delete-insert conflict, <code>false</code> otherwise.
-	 */
-	private boolean isDeleteInsertAt(int lineIndex) {
-		return leftOperations.isDeleteAtOriginLineIndex(lineIndex)
-				&& rightOperations.isChangedAtOriginLineIndex(lineIndex);
+		// TODO
+		return false;
 	}
 
 	/**
@@ -237,9 +184,20 @@ public class ThreeWayTextDiff {
 	 * @return A merged version of left and right.
 	 */
 	public String getMerged() {
-		final String patchedLeft = rightOperations.merge(leftOperations);
-		final String merged = nullIfUnset(patchedLeft);
-		return merged;
+		// TODO
+		return "";
+	}
+
+	/**
+	 * Creates a {@link BufferedReader} over the given {@code string}.
+	 * 
+	 * @param string
+	 *            The string to create the reader for.
+	 * @return The created reader.
+	 */
+	private BufferedReader createBufferedReader(String string) {
+		final ByteArrayInputStream inputStream = new ByteArrayInputStream(string.getBytes());
+		return new BufferedReader(new InputStreamReader(inputStream));
 	}
 
 	/**
@@ -290,7 +248,7 @@ public class ThreeWayTextDiff {
 	 * 
 	 * @author Philip Langer <planger@eclipsesource.com>
 	 */
-	private class LineOperations {
+	private class LineDifferences {
 
 		/** The {@link LineBasedDiff} instance. */
 		private final LineBasedDiff lbDiff = new LineBasedDiff();
@@ -301,14 +259,11 @@ public class ThreeWayTextDiff {
 		/** The revised version of the text. */
 		private String revised;
 
-		/** The diffs described in this line operations. */
+		/** The differences between {@link #origin} and {@link #revised}. */
 		private LinkedList<Diff> diffs;
 
-		/** The list of operations. */
-		private List<Operation> operations = new ArrayList<Operation>();
-
 		/**
-		 * Creates the line operations for the given {@code origin} version of a text and its {@code revised}
+		 * Creates the line differences for the given {@code origin} version of a text and its {@code revised}
 		 * version.
 		 * 
 		 * @param origin
@@ -316,12 +271,36 @@ public class ThreeWayTextDiff {
 		 * @param revised
 		 *            The revised version of the plain text.
 		 */
-		public LineOperations(String origin, String revised) {
+		public LineDifferences(String origin, String revised) {
 			super();
 			this.origin = origin;
 			this.revised = revised;
-			this.diffs = computeLineBasedDiff(origin, revised);
-			initialize();
+			computeLineBasedDiff();
+		}
+
+		/**
+		 * Computes and sets the line-based differences between {@link #origin} and {@link #revised}.
+		 * <p>
+		 * This method computes flattened line-based differences. Flattened differences contain one difference
+		 * entry for each added or deleted line. If a addition or deletion spans across multiple lines, the
+		 * flattened difference will show one addition or deletion for each line within the added or deleted
+		 * block of lines.
+		 * </p>
+		 */
+		private void computeLineBasedDiff() {
+			diffs = new LinkedList<Diff>();
+			for (Diff diff : lbDiff.computeLineBasedDiff(origin, revised)) {
+				String line;
+				try {
+					final BufferedReader reader = createBufferedReader(diff.text);
+					while ((line = reader.readLine()) != null) {
+						diffs.add(new Diff(diff.operation, line));
+					}
+					reader.close();
+				} catch (IOException e) {
+					// this must never happen as we are reading strings
+				}
+			}
 		}
 
 		/**
@@ -341,395 +320,37 @@ public class ThreeWayTextDiff {
 		public String getRevised() {
 			return revised;
 		}
+	}
 
-		/**
-		 * Returns the line at {@code lineIndex} of the revised version of the text.
-		 * <p>
-		 * The line might be absent if {@code lineIndex} is greater or equal to the number of lines in the
-		 * revised text.
-		 * </p
-		 * 
-		 * @param lineIndex
-		 *            The line index of the <i>revised</i> version of the text.
-		 * @return The line at {@code lineIndex} revised version.
-		 */
-		private Optional<String> getRevised(int lineIndex) {
-			final String[] lineArray = revised.split(NL);
-			if (lineArray.length > lineIndex) {
-				return Optional.of(lineArray[lineIndex]);
-			} else {
-				return Optional.absent();
-			}
+	private class ThreeWayLineDifference {
 
+		private String originLine;
+
+		private LinkedList<Diff> leftDiffs = new LinkedList<Diff>();
+
+		private LinkedList<Diff> rightDiffs = new LinkedList<Diff>();
+
+		public ThreeWayLineDifference(String originLine) {
+			this.originLine = originLine;
 		}
 
-		/**
-		 * Initializes the list of operations.
-		 */
-		private void initialize() {
-			for (Diff diff : diffs) {
-				addLineOperations(diff);
-			}
+		public void addLeftDiff(Diff leftDiff) {
+			leftDiffs.add(leftDiff);
 		}
 
-		/**
-		 * Computes a line-based diff between {@code original} and {@code revision}.
-		 * 
-		 * @param original
-		 *            The original version of the plain text.
-		 * @param revision
-		 *            The revised version of the plain text.
-		 * @return The line-based differences between {@code origin} and {@code revision}.
-		 */
-		private LinkedList<Diff> computeLineBasedDiff(String original, String revision) {
-			return lbDiff.computeLineBasedDiff(nullToEmpty(original), nullToEmpty(revision));
+		public void addRightDiff(Diff rightDiff) {
+			rightDiffs.add(rightDiff);
 		}
 
-		/**
-		 * Adds the line operations of the given {@code diff}.
-		 * 
-		 * @param diff
-		 *            The diff to add line operations of.
-		 */
-		private void addLineOperations(Diff diff) {
-			final int numberOfLines = getNumberOfAffectedLines(diff);
-			for (int i = 0; i < numberOfLines; i++) {
-				operations.add(diff.operation);
-			}
+		public boolean isConflicting() {
+			// TODO
+			return false;
 		}
 
-		/**
-		 * Returns the number of lines inserted, deleted, or left equal of the given {@code diff}.
-		 * 
-		 * @param diff
-		 *            The diff to get the number of inserted, deleted, or equal lines for.
-		 * @return The number of inserted, deleted, or equal lines for {@code diff}.
-		 */
-		private int getNumberOfAffectedLines(Diff diff) {
-			return getNumberOfLines(diff.text);
+		public String getMerged() {
+			// TODO
+			return "";
 		}
 
-		/**
-		 * Merges the line operations with the given {@code oppositeOperations} and returns the merged text.
-		 * 
-		 * @param oppositeOperations
-		 *            The opposite line operations to merge with.
-		 * @return The merged text.
-		 */
-		public String merge(LineOperations oppositeOperations) {
-			final LinkedList<Diff> filteredDiffs = getDiffsWithoutDuplicates(oppositeOperations);
-			final LinkedList<Patch> patches = lbDiff.patch_make(filteredDiffs);
-			final String base = oppositeOperations.getRevised();
-			return applyPatches(patches, base);
-		}
-
-		private LinkedList<Diff> getDiffsWithoutDuplicates(LineOperations oppositeOperations) {
-			final LinkedList<Diff> filteredDiffs = new LinkedList<Diff>();
-
-			final LinkedList<Diff> myDiffs = this.getFlattenedDiffs();
-			final LinkedList<Diff> oppositeDiffs = oppositeOperations.getFlattenedDiffs();
-
-			int myDiffIndex = 0;
-			int oppositeDiffIndex = 0;
-			while (myDiffIndex < myDiffs.size()) {
-				final Diff myDiff = myDiffs.get(myDiffIndex);
-
-				// move down? out of this while
-				if (oppositeDiffs.size() <= oppositeDiffIndex) {
-					myDiffIndex++;
-					filteredDiffs.add(myDiff);
-					continue;
-				}
-
-				final Diff oppositeDiff = oppositeDiffs.get(oppositeDiffIndex);
-				switch (myDiff.operation) {
-					case EQUAL:
-						switch (oppositeDiff.operation) {
-							case INSERT:
-								oppositeDiffIndex++;
-								break;
-							default:
-								myDiffIndex++;
-								oppositeDiffIndex++;
-								filteredDiffs.add(myDiff);
-								break;
-						}
-						break;
-					case INSERT:
-						switch (oppositeDiff.operation) {
-							case INSERT:
-								myDiffIndex++;
-								oppositeDiffIndex++;
-								if (!myDiff.text.equals(oppositeDiff.text)) {
-									filteredDiffs.add(myDiff);
-								}
-								break;
-							default:
-								myDiffIndex++;
-								filteredDiffs.add(myDiff);
-								break;
-						}
-						break;
-					case DELETE:
-						switch (oppositeDiff.operation) {
-							case EQUAL:
-								myDiffIndex++;
-								oppositeDiffIndex++;
-								filteredDiffs.add(myDiff);
-								break;
-							case INSERT:
-								oppositeDiffIndex++;
-								break;
-							case DELETE:
-								myDiffIndex++;
-								oppositeDiffIndex++;
-								if (!myDiff.text.equals(oppositeDiff.text)) {
-									filteredDiffs.add(myDiff);
-								}
-								break;
-						}
-						break;
-				}
-			}
-			return filteredDiffs;
-		}
-
-		/**
-		 * Computes a flattened representation of the {@link #diffs} and returns them.
-		 * <p>
-		 * {@link Diff Text differences} may represent changes that span across multiple lines. To enable
-		 * iterating the differences in a <i>line-wise</i> manner, we compute a flattened list out of these
-		 * differences so that each difference represents the change of one line only.
-		 * </p>
-		 * 
-		 * @return The flattened differences.
-		 */
-		public LinkedList<Diff> getFlattenedDiffs() {
-			final LinkedList<Diff> flattenedDiffs = new LinkedList<Diff>();
-			for (Diff diff : diffs) {
-				String[] lines = getLines(diff.text);
-				for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-					final String line;
-					final boolean isLastLine = lineIndex >= lines.length - 1;
-					final boolean endsWithNewLine = diff.text.endsWith(NL);
-					if (!isLastLine || endsWithNewLine) {
-						line = lines[lineIndex] + NL;
-					} else {
-						line = lines[lineIndex];
-					}
-					flattenedDiffs.add(new Diff(diff.operation, line));
-				}
-			}
-			return flattenedDiffs;
-		}
-
-		/**
-		 * Applies the given {@code patches} to the given {@code base} text.
-		 * 
-		 * @param patches
-		 *            The patches to apply.
-		 * @param base
-		 *            The base text to apply {@code patches} to.
-		 * @return The resulting string after applying {@code patches} to {@code base}.
-		 */
-		private String applyPatches(final LinkedList<Patch> patches, final String base) {
-			return (String)lbDiff.patch_apply(patches, nullToEmpty(base))[0];
-		}
-
-		/**
-		 * Specifies whether the line operations contain an insertion at the given {@code originLineIndex}
-		 * (i.e., the line index of the origin version).
-		 * <p>
-		 * Therefore, it first determines the corresponding line in the revised version and checks for an
-		 * insertion.
-		 * </p>
-		 * 
-		 * @param originLineIndex
-		 *            The line index of the origin version of the text.
-		 * @return <code>true</code> if there is an insertion, <code>false</code> otherwise.
-		 */
-		public boolean isInsertAtOriginLineIndex(int originLineIndex) {
-			final int lineIndex = getRevisedLineIndexForOriginLineIndex(originLineIndex);
-			return isInsertAt(lineIndex);
-		}
-
-		/**
-		 * Specifies whether the line operations contain a deletion at the given {@code originLineIndex}
-		 * (i.e., the line index of the origin version).
-		 * <p>
-		 * Therefore, it first determines the corresponding line in the revised version and checks for a
-		 * deletion.
-		 * </p>
-		 * 
-		 * @param originLineIndex
-		 *            The line index of the origin version of the text.
-		 * @return <code>true</code> if there is a deletion, <code>false</code> otherwise.
-		 */
-		public boolean isDeleteAtOriginLineIndex(int originLineIndex) {
-			final int lineIndex = getRevisedLineIndexForOriginLineIndex(originLineIndex);
-			return isDeleteAt(lineIndex);
-		}
-
-		/**
-		 * Specifies whether the line at {@code originLineIndex} (i.e., the line index of the origin version)
-		 * is changed.
-		 * <p>
-		 * Therefore, it first determines the corresponding line in the revised version and checks for a
-		 * change. The line is changed if there is a deletion that is followed by an insertion or if there is
-		 * an insertion only.
-		 * </p>
-		 * 
-		 * @param originLineIndex
-		 *            The line index of the origin version of the text.
-		 * @return <code>true</code> if there is a deletion with a subsequent insertion, <code>false</code>
-		 *         otherwise.
-		 */
-		public boolean isChangedAtOriginLineIndex(int originLineIndex) {
-			final int lineIndex = getRevisedLineIndexForOriginLineIndex(originLineIndex);
-			return isChangedAt(lineIndex);
-		}
-
-		/**
-		 * Returns the line index of the revised version that corresponds to the given {@code originLineIndex}
-		 * (i.e., the line index of the origin version).
-		 * 
-		 * @param originLineIndex
-		 *            The line index of the origin version of the text.
-		 * @return The line in the revised version that corresponds to the given line in the origin version.
-		 */
-		private int getRevisedLineIndexForOriginLineIndex(int originLineIndex) {
-			int currentOriginLineIndex = 0;
-			int lineIndex = 0;
-			while (currentOriginLineIndex < originLineIndex) {
-				final Operation operation = getOperation(lineIndex);
-				if (!isInsert(operation)) {
-					currentOriginLineIndex++;
-				}
-				if (isDelete(operation)) {
-					lineIndex++;
-				}
-				lineIndex++;
-			}
-			return lineIndex;
-		}
-
-		/**
-		 * Specifies whether there is an insertion at the given {@code lineIndex} (i.e., the line index of the
-		 * revised version).
-		 * 
-		 * @param lineIndex
-		 *            The line index of the revised version of the text.
-		 * @return <code>true</code> if there is an insertion, <code>false</code> otherwise.
-		 */
-		private boolean isInsertAt(int lineIndex) {
-			return hasIndex(lineIndex) && isInsert(getOperation(lineIndex));
-		}
-
-		/**
-		 * Specifies whether there is a deletion at the given {@code lineIndex} (i.e., the line index of the
-		 * revised version).
-		 * 
-		 * @param lineIndex
-		 *            The line index of the revised version of the text.
-		 * @return <code>true</code> if there is a deletion, <code>false</code> otherwise.
-		 */
-		private boolean isDeleteAt(int lineIndex) {
-			return hasIndex(lineIndex) && isDelete(getOperation(lineIndex));
-		}
-
-		/**
-		 * Specifies whether the line at {@code lineIndex} is changed.
-		 * <p>
-		 * The line at {@code lineIndex} (i.e., the line index of the revised version) is changed if there is
-		 * a deletion that is followed by an insertion or if there is an insertion only.
-		 * </p>
-		 * 
-		 * @param lineIndex
-		 *            The line index of the revised version of the text.
-		 * @return <code>true</code> if the line is changed, <code>false</code> otherwise.
-		 */
-		private boolean isChangedAt(int lineIndex) {
-			return (isDeleteAt(lineIndex) && isFollowedByInsert(lineIndex)) || isInsertAt(lineIndex);
-		}
-
-		/**
-		 * Specifies whether the given {@code lineIndex} of the revised version is followed by an insertion.
-		 * 
-		 * @param lineIndex
-		 *            The line index of the revised version of the text.
-		 * @return <code>true</code> if the given {@code lineIndex} is followed by an insertion,
-		 *         <code>false</code> otherwise.
-		 */
-		private boolean isFollowedByInsert(int lineIndex) {
-			final boolean isFollowedByInsert;
-			final int nextLineIndex = lineIndex + 1;
-			if (hasIndex(nextLineIndex) && !isEqual(getOperation(nextLineIndex))) {
-				final Operation nextOperation = getOperation(nextLineIndex);
-				isFollowedByInsert = isInsert(nextOperation) || isFollowedByInsert(nextLineIndex);
-			} else {
-				isFollowedByInsert = false;
-			}
-			return isFollowedByInsert;
-		}
-
-		/**
-		 * Returns the operation at the given {@code index}.
-		 * <p>
-		 * The index corresponds to the line index of the revised version of the text. If there is no
-		 * operation at the given {@code index}, this method throws an {@link IndexOutOfBoundsException}.
-		 * </p>
-		 * 
-		 * @param index
-		 *            The index for which the operation is requested.
-		 * @return The operation at the given {@code index}.
-		 */
-		private Operation getOperation(int index) {
-			return operations.get(index);
-		}
-
-		/**
-		 * Specifies whether the list operations has an operation at the given {@code index}.
-		 * 
-		 * @param index
-		 *            The index for which the operation is requested.
-		 * @return <code>true</code> if there is an operation at the given {@code index}, <code>false</code>
-		 *         otherwise.
-		 */
-		private boolean hasIndex(int index) {
-			return operations.size() > index;
-		}
-
-		/**
-		 * Specifies whether the given {@code operation} is an insertion.
-		 * 
-		 * @param operation
-		 *            The operation to check.
-		 * @return <code>true</code> if it is an insertion, <code>false</code> otherwise.
-		 */
-		private boolean isInsert(Operation operation) {
-			return Operation.INSERT.equals(operation);
-		}
-
-		/**
-		 * Specifies whether the given {@code operation} is a deletion.
-		 * 
-		 * @param operation
-		 *            The operation to check.
-		 * @return <code>true</code> if it is a deletion, <code>false</code> otherwise.
-		 */
-		private boolean isDelete(final Operation operation) {
-			return Operation.DELETE.equals(operation);
-		}
-
-		/**
-		 * Specifies whether the given {@code operation} denotes an unchanged line (equal).
-		 * 
-		 * @param operation
-		 *            The operation to check.
-		 * @return <code>true</code> if the operation denotes an unchanged line, <code>false</code> otherwise.
-		 */
-		private boolean isEqual(final Operation operation) {
-			return Operation.EQUAL.equals(operation);
-		}
 	}
 }
