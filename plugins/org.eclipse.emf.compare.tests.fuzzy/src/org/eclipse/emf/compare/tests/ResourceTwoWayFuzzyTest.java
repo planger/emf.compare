@@ -25,6 +25,9 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 import org.junit.After;
@@ -70,6 +73,8 @@ public class ResourceTwoWayFuzzyTest extends TwoWayFuzzyTest {
 	private Resource leftResource;
 
 	private Resource rightResource;
+	
+	private ResourceSet resourceSet;
 
 	@Override
 	public void prepareTwoVersions() {
@@ -81,11 +86,13 @@ public class ResourceTwoWayFuzzyTest extends TwoWayFuzzyTest {
 	}
 
 	private void prepareResources() throws IOException {
+		resourceSet = new ResourceSetImpl();
 		createLeftResource();
 		createRightResource();
 		unloadLeftAndRightResources();
 		copyAndLoadWorkingResources();
 		reloadLeftAndRightResources();
+		EcoreUtil.resolveAll(resourceSet);
 	}
 
 	private void createLeftResource() throws IOException {
@@ -114,7 +121,7 @@ public class ResourceTwoWayFuzzyTest extends TwoWayFuzzyTest {
 
 	private Resource loadResource(File file) throws IOException {
 		final URI uri = URI.createFileURI(file.getAbsolutePath());
-		Resource resource = resourceFactory.createResource(uri);
+		Resource resource = resourceSet.createResource(uri);
 		if (!file.exists()) {
 			resource.save(SAVE_OPTIONS);
 		}
