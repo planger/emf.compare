@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Obeo.
+ * Copyright (c) 2012, 2015 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,9 +23,13 @@ import org.eclipse.compare.contentmergeviewer.ContentMergeViewer;
 import org.eclipse.compare.internal.CompareHandlerService;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.emf.common.command.Command;
+import org.eclipse.emf.common.command.CommandStack;
 import org.eclipse.emf.common.command.CommandStackListener;
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.compare.Diff;
+import org.eclipse.emf.compare.command.ICompareCommandStack;
+import org.eclipse.emf.compare.command.ICompareCopyCommand;
 import org.eclipse.emf.compare.domain.ICompareEditingDomain;
 import org.eclipse.emf.compare.ide.ui.internal.configuration.EMFCompareConfiguration;
 import org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.util.DynamicObject;
@@ -51,6 +55,9 @@ import org.eclipse.emf.edit.domain.AdapterFactoryEditingDomain;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryContentProvider;
 import org.eclipse.emf.edit.ui.view.ExtendedPropertySheetPage;
+import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -171,17 +178,17 @@ public abstract class EMFCompareContentMergeViewer extends ContentMergeViewer im
 	}
 
 	protected void editingDomainChange(ICompareEditingDomain oldValue, ICompareEditingDomain newValue) {
+		if (oldValue != null) {
+			ICompareCommandStack commandStack = oldValue.getCommandStack();
+			commandStack.removeCommandStackListener(this);
+		}
 		if (newValue != oldValue) {
-			if (oldValue != null) {
-				oldValue.getCommandStack().removeCommandStackListener(this);
-			}
-
 			if (newValue != null) {
-				newValue.getCommandStack().addCommandStackListener(this);
-				setLeftDirty(newValue.getCommandStack().isLeftSaveNeeded());
-				setRightDirty(newValue.getCommandStack().isRightSaveNeeded());
+				ICompareCommandStack commandStack = newValue.getCommandStack();
+				commandStack.addCommandStackListener(this);
+				setLeftDirty(commandStack.isLeftSaveNeeded());
+				setRightDirty(commandStack.isRightSaveNeeded());
 			}
-
 			undoAction.setEditingDomain(newValue);
 			redoAction.setEditingDomain(newValue);
 		}
@@ -297,6 +304,7 @@ public abstract class EMFCompareContentMergeViewer extends ContentMergeViewer im
 
 		fRight = createMergeViewer(composite, MergeViewerSide.RIGHT);
 		fRight.addSelectionChangedListener(this);
+
 		IThemeManager themeManager = PlatformUI.getWorkbench().getThemeManager();
 		final ITheme currentTheme;
 		if (themeManager != null) {
@@ -325,18 +333,35 @@ public abstract class EMFCompareContentMergeViewer extends ContentMergeViewer im
 	 * @see org.eclipse.compare.contentmergeviewer.ContentMergeViewer#createToolItems(org.eclipse.jface.action.ToolBarManager)
 	 */
 	@Override
-	protected void createToolItems(ToolBarManager toolBarManager) {
+	protected void createToolItems(final ToolBarManager toolBarManager) {
 		getHandlerService().setGlobalActionHandler(ActionFactory.UNDO.getId(), undoAction);
 		getHandlerService().setGlobalActionHandler(ActionFactory.REDO.getId(), redoAction);
 
+		IContributionItem[] items = toolBarManager.getItems();
+		for (IContributionItem iContributionItem : items) {
+			if (iContributionItem instanceof ActionContributionItem) {
+				IAction action = ((ActionContributionItem)iContributionItem).getAction();
+				String id = action.getActionDefinitionId();
+				if ("org.eclipse.compare.copyAllLeftToRight".equals(id)) {
+					toolBarManager.remove(iContributionItem);
+				} else if ("org.eclipse.compare.copyAllRightToLeft".equals(id)) {
+					toolBarManager.remove(iContributionItem);
+				}
+			}
+		}
+
 		// Add extension point contributions to the content merge viewer toolbar
 		IServiceLocator workbench = PlatformUI.getWorkbench();
-		IMenuService menuService = (IMenuService)workbench.getService(IMenuService.class);
+		final IMenuService menuService = (IMenuService)workbench.getService(IMenuService.class);
 		if (menuService != null) {
 			menuService.populateContributionManager(toolBarManager,
 					"toolbar:org.eclipse.emf.compare.contentmergeviewer.toolbar"); //$NON-NLS-1$
+			toolBarManager.getControl().addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					menuService.releaseContributions(toolBarManager);
+				}
+			});
 		}
-
 	}
 
 	public void commandStackChanged(EventObject event) {
@@ -344,11 +369,16 @@ public abstract class EMFCompareContentMergeViewer extends ContentMergeViewer im
 		redoAction.update();
 
 		if (getCompareConfiguration().getEditingDomain() != null) {
-			setLeftDirty(getCompareConfiguration().getEditingDomain().getCommandStack().isLeftSaveNeeded());
-			setRightDirty(getCompareConfiguration().getEditingDomain().getCommandStack().isRightSaveNeeded());
+			ICompareCommandStack commandStack = getCompareConfiguration().getEditingDomain()
+					.getCommandStack();
+			setLeftDirty(commandStack.isLeftSaveNeeded());
+			setRightDirty(commandStack.isRightSaveNeeded());
 		}
 
-		SWTUtil.safeRefresh(this, true, false);
+		Command mostRecentCommand = ((CommandStack)event.getSource()).getMostRecentCommand();
+		if (mostRecentCommand instanceof ICompareCopyCommand) {
+			SWTUtil.safeRefresh(this, true, false);
+		}
 	}
 
 	/**
@@ -516,16 +546,22 @@ public abstract class EMFCompareContentMergeViewer extends ContentMergeViewer im
 		if (selection instanceof StructuredSelection) {
 			StructuredSelection structuredSelection = (StructuredSelection)selection;
 			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-			ExtendedPropertySheetPage propertySheetPage = getExtendedPropertySheetPage(page);
+			final ExtendedPropertySheetPage propertySheetPage = getExtendedPropertySheetPage(page);
 			if (propertySheetPage != null) {
 				StructuredSelection selectionForPropertySheet = null;
-				IWorkbenchPart activePart = page.getActivePart();
+				final IWorkbenchPart activePart = page.getActivePart();
 				Object firstElement = structuredSelection.getFirstElement();
 				if (firstElement instanceof MergeViewerItem) {
 					MergeViewerItem mergeViewerItem = (MergeViewerItem)firstElement;
 					MergeViewerSide side = mergeViewerItem.getSide();
 					Object newSelectedObject = mergeViewerItem.getSideValue(side);
 					propertySheetPage.setPropertySourceProvider(fAdapterFactoryContentProvider);
+					getControl().addDisposeListener(new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							propertySheetPage.selectionChanged(activePart, null);
+							propertySheetPage.setPropertySourceProvider(null);
+						}
+					});
 					if (newSelectedObject != null) {
 						if (newSelectedObject instanceof EObject) {
 							manageReadOnly((EObject)newSelectedObject, side);
@@ -644,6 +680,10 @@ public abstract class EMFCompareContentMergeViewer extends ContentMergeViewer im
 	protected void handleDispose(DisposeEvent event) {
 		editingDomainChange(getCompareConfiguration().getEditingDomain(), null);
 		getCompareConfiguration().getEventBus().unregister(this);
+		differenceGroupProvider = null;
+		undoAction = null;
+		redoAction = null;
+		fAdapterFactoryContentProvider.setAdapterFactory(null);
 		super.handleDispose(event);
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011, 2014 Obeo.
+ * Copyright (c) 2011, 2012 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -133,6 +133,14 @@ public class NodesAdapterFactory extends AdapterFactoryImpl {
 			@Override
 			public Adapter caseNodeFeatureMapContainment2(NodeFeatureMapContainment2 object) {
 				return createNodeFeatureMapContainment2Adapter();
+			}
+			@Override
+			public Adapter caseNodeSingleValueEEnumAttribute(NodeSingleValueEEnumAttribute object) {
+				return createNodeSingleValueEEnumAttributeAdapter();
+			}
+			@Override
+			public Adapter caseNodeMultiValueEEnumAttribute(NodeMultiValueEEnumAttribute object) {
+				return createNodeMultiValueEEnumAttributeAdapter();
 			}
 			@Override
 			public Adapter caseMonoValuedNodeFeatureMapNonContainment(MonoValuedNodeFeatureMapNonContainment object) {
@@ -337,6 +345,34 @@ public class NodesAdapterFactory extends AdapterFactoryImpl {
 	 * @generated
 	 */
 	public Adapter createNodeFeatureMapContainment2Adapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eclipse.emf.compare.tests.nodes.NodeSingleValueEEnumAttribute <em>Node Single Value EEnum Attribute</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eclipse.emf.compare.tests.nodes.NodeSingleValueEEnumAttribute
+	 * @generated
+	 */
+	public Adapter createNodeSingleValueEEnumAttributeAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eclipse.emf.compare.tests.nodes.NodeMultiValueEEnumAttribute <em>Node Multi Value EEnum Attribute</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eclipse.emf.compare.tests.nodes.NodeMultiValueEEnumAttribute
+	 * @generated
+	 */
+	public Adapter createNodeMultiValueEEnumAttributeAdapter() {
 		return null;
 	}
 

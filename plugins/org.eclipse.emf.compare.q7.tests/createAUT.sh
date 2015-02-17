@@ -20,7 +20,7 @@ elif [[ "${OSTYPE}" == "darwin"* ]]; then
 	PLATFORM_SHORT_SPECIFIER="macosx-cocoa"
 	FILE_EXT="tar.gz"
 else
-	LSCRITICAL "Unknown 'OSTYPE'=${OSTYPE}."
+	echo "Unknown 'OSTYPE'=${OSTYPE}."
 	exit -1
 fi
 
@@ -49,11 +49,20 @@ if [[ -d $P2_ADMIN_PATH ]]; then
 	rm -rf "p2-admin"
 fi
 echo "Unzipping $P2_ADMIN_ZIPNAME"
-tar zxf "$P2_ADMIN_ZIPPATH" -C $workdir
+if [[ "$FILE_EXT" == "zip" ]]; then
+	unzip -q "$P2_ADMIN_ZIPPATH" -d $workdir
+else
+	tar zxf "$P2_ADMIN_ZIPPATH" -C $workdir
+fi
 
-if [[ "$simrel" == "mars"* ]]; then
-	simrel_zip_name="eclipse-SDK-4.5M2-${PLATFORM_SHORT_SPECIFIER}.${FILE_EXT}"
-	simrel_zip_url="http://download.eclipse.org/eclipse/downloads/drops4/S-4.5M2-201409180330/$simrel_zip_name"	
+if [[ "$simrel" == "collaborative-modeling"* ]]; then
+	simrel_zip_name="Collaborative-Modeling-${PLATFORM_SHORT_SPECIFIER}.${FILE_EXT}"
+	simrel_zip_url="http://download.eclipse.org/modeling/emf/compare/collaborative-modeling-package/nightly/$simrel_zip_name"	
+	p2_repositories=""
+	p2_installIUs=""
+elif [[ "$simrel" == "mars"* ]]; then
+	simrel_zip_name="eclipse-SDK-4.5M5a-${PLATFORM_SHORT_SPECIFIER}.${FILE_EXT}"
+	simrel_zip_url="http://download.eclipse.org/eclipse/downloads/drops4/S-4.5M5a-201502031300/$simrel_zip_name"	
 	p2_repositories="http://download.eclipse.org/releases/mars/,\
 http://download.eclipse.org/modeling/emf/compare/updates/nightly/latest/,\
 http://download.eclipse.org/modeling/emf/compare/updates/egit-logical/nightly/"
@@ -66,8 +75,8 @@ org.eclipse.emf.compare.uml2.feature.group,\
 org.eclipse.emf.compare.diagram.gmf.feature.group,\
 org.eclipse.emf.compare.diagram.papyrus.feature.group"
 elif [[ "$simrel" == "luna"* ]]; then
-	simrel_zip_name="eclipse-SDK-4.4-${PLATFORM_SHORT_SPECIFIER}.${FILE_EXT}"
-	simrel_zip_url="http://download.eclipse.org/eclipse/downloads/drops4/R-4.4-201406061215/$simrel_zip_name"
+	simrel_zip_name="eclipse-SDK-4.4.1-${PLATFORM_SHORT_SPECIFIER}.${FILE_EXT}"
+	simrel_zip_url="http://download.eclipse.org/eclipse/downloads/drops4/R-4.4.1-201409250400/$simrel_zip_name"
 	p2_repositories="http://download.eclipse.org/releases/luna/,\
 http://download.eclipse.org/modeling/emf/compare/updates/nightly/latest/,\
 http://download.eclipse.org/modeling/emf/compare/updates/egit-logical/nightly/"
@@ -109,15 +118,31 @@ fi
 simrel_path=$workdir/$simrel
 mkdir -p $simrel_path
 
+if [[ -d "$simrel_path/Collaborative-Modeling-${PLATFORM_SHORT_SPECIFIER}" ]]; then
+  echo "Removing old Collaborative-Modeling-${PLATFORM_SHORT_SPECIFIER} folder"
+  rm -rf "$simrel_path/Collaborative-Modeling-${PLATFORM_SHORT_SPECIFIER}"
+fi
+
 if [[ -d "$simrel_path/eclipse" ]]; then
   echo "Removing old eclipse folder"
   rm -rf "$simrel_path/eclipse"
 fi
 
 echo "Unzipping $simrel_zip_name"
-tar zxf "$simrel_zip_path" -C $simrel_path
+if [[ "$FILE_EXT" == "zip" ]]; then
+	unzip -q "$simrel_zip_path" -d $simrel_path
+else
+	tar zxf "$simrel_zip_path" -C $simrel_path
+fi
+
+if [[ -d "$simrel_path/Collaborative-Modeling-${PLATFORM_SHORT_SPECIFIER}" ]]; then
+  echo "Renaming Collaborative-Modeling-${PLATFORM_SHORT_SPECIFIER} to eclipse"
+  mv "$simrel_path/Collaborative-Modeling-${PLATFORM_SHORT_SPECIFIER}" "$simrel_path/eclipse"
+fi
 
 echo "Provisioning AUT"
 echo "  Repositories: $p2_repositories"
 echo "  IUs: $p2_installIUs"
-$P2_ADMIN_PATH/p2-admin -vm $JAVA_HOME/bin/java -application org.eclipse.equinox.p2.director -repository "$p2_repositories" -installIU "$p2_installIUs" -tag Q7_AUT -destination "$simrel_path/eclipse" -profile SDKProfile
+if [ -n "$p2_repositories" ]; then 
+	$P2_ADMIN_PATH/p2-admin -vm $JAVA_HOME/bin/java -application org.eclipse.equinox.p2.director -repository "$p2_repositories" -installIU "$p2_installIUs" -tag Q7_AUT -destination "$simrel_path/eclipse" -profile SDKProfile
+fi

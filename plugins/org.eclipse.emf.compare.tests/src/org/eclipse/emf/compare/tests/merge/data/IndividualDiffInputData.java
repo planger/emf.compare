@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012, 2014 Obeo.
+ * Copyright (c) 2012, 2014 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Stefan Dirix - added testdata for bug 455255
  */
 package org.eclipse.emf.compare.tests.merge.data;
 
@@ -33,6 +34,18 @@ public class IndividualDiffInputData extends AbstractInputData {
 
 	public Resource getAttributeMonoChangeRight() throws IOException {
 		return loadFromClassLoader("fullscope/attributemonochange/right.nodes");
+	}
+
+	public Resource getAttributeMonoEEnumChangeLeft() throws IOException {
+		return loadFromClassLoader("fullscope/attributemonochange/eenum/left.nodes");
+	}
+
+	public Resource getAttributeMonoEEnumChangeOrigin() throws IOException {
+		return loadFromClassLoader("fullscope/attributemonochange/eenum/origin.nodes");
+	}
+
+	public Resource getAttributeMonoEEnumChangeRight() throws IOException {
+		return loadFromClassLoader("fullscope/attributemonochange/eenum/right.nodes");
 	}
 
 	public Resource getAttributeMonoSetLeft() throws IOException {
@@ -69,6 +82,18 @@ public class IndividualDiffInputData extends AbstractInputData {
 
 	public Resource getAttributeMultiAddRight() throws IOException {
 		return loadFromClassLoader("fullscope/attributemultiadd/right.nodes");
+	}
+
+	public Resource getAttributeEEnumMultiAddLeft() throws IOException {
+		return loadFromClassLoader("fullscope/attributemultiadd/eenum/left.nodes");
+	}
+
+	public Resource getAttributeEEnumMultiAddOrigin() throws IOException {
+		return loadFromClassLoader("fullscope/attributemultiadd/eenum/origin.nodes");
+	}
+
+	public Resource getAttributeEEnumMultiAddRight() throws IOException {
+		return loadFromClassLoader("fullscope/attributemultiadd/eenum/right.nodes");
 	}
 
 	public Resource getAttributeMultiDelLeft() throws IOException {
@@ -159,6 +184,18 @@ public class IndividualDiffInputData extends AbstractInputData {
 		return loadFromClassLoader("fullscope/referencemultimove/left.nodes");
 	}
 
+	public Resource getReferenceDifferentContainmentMoveOrigin() throws IOException {
+		return loadFromClassLoader("fullscope/differentcontainmentmove/origin.nodes");
+	}
+
+	public Resource getReferenceDifferentContainmentMoveLeft() throws IOException {
+		return loadFromClassLoader("fullscope/differentcontainmentmove/left.nodes");
+	}
+
+	public Resource getReferenceDifferentContainmentMoveRight() throws IOException {
+		return loadFromClassLoader("fullscope/differentcontainmentmove/right.nodes");
+	}
+
 	public Resource getReferenceMultiMoveOrigin() throws IOException {
 		return loadFromClassLoader("fullscope/referencemultimove/origin.nodes");
 	}
@@ -245,6 +282,18 @@ public class IndividualDiffInputData extends AbstractInputData {
 
 	public Resource getReferenceMultiMoveRightOutOfScope() throws IOException {
 		return loadFromClassLoader("outofscope/referencemultimove/right.nodes");
+	}
+
+	public Resource getLeftAddRightAddLeftConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftadd_rightadd/left.nodes");
+	}
+
+	public Resource getLeftAddRightAddOriginConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftadd_rightadd/origin.nodes");
+	}
+
+	public Resource getLeftAddRightAddRightConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftadd_rightadd/right.nodes");
 	}
 
 	public Resource getLeftAddRightDeleteLeftConflictScope() throws IOException {
@@ -700,5 +749,42 @@ public class IndividualDiffInputData extends AbstractInputData {
 			throws IOException {
 		return loadFromClassLoader("featuremapscope/noncontainment/pseudoconflicts/moveorder/ancestor.nodes",
 				resourceSet);
+	}
+
+	public Resource getFeatureMapContainmentMoveInsideOutsideOrigin(ResourceSet resourceSet)
+			throws IOException {
+		return loadFromClassLoader("featuremapscope/containment/moveinandout/ancestor.nodes", resourceSet);
+	}
+
+	public Resource getFeatureMapContainmentMoveOutside(ResourceSet resourceSet) throws IOException {
+		return loadFromClassLoader("featuremapscope/containment/moveinandout/outside.nodes", resourceSet);
+	}
+
+	public Resource getFeatureMapContainmentMoveInside(ResourceSet resourceSet) throws IOException {
+		return loadFromClassLoader("featuremapscope/containment/moveinandout/inside.nodes", resourceSet);
+	}
+
+	public Resource getLeftSetRightSetOriginEEnumConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftset_rightset/origin.nodes");
+	}
+
+	public Resource getLeftSetRightSetLeftEEnumConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftset_rightset/left.nodes");
+	}
+
+	public Resource getLeftSetRightSetRightEEnumConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftset_rightset/right.nodes");
+	}
+
+	public Resource getLeftAddRightDeleteOriginEEnumConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftadd_rightdelete/eenum/origin.nodes");
+	}
+
+	public Resource getLeftAddRightDeleteLeftEEnumConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftadd_rightdelete/eenum/left.nodes");
+	}
+
+	public Resource getLeftAddRightDeleteRightEEnumConflictScope() throws IOException {
+		return loadFromClassLoader("conflictscope/leftadd_rightdelete/eenum/right.nodes");
 	}
 }

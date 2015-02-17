@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Obeo.
+ * Copyright (c) 2012, 2015 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,10 @@
  *     Obeo - initial API and implementation
  *******************************************************************************/
 package org.eclipse.emf.compare.tests.performance;
+
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.getFirst;
+import static com.google.common.collect.Iterables.transform;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,6 +30,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.emf.common.EMFPlugin;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EPackage;
@@ -53,10 +60,6 @@ import fr.obeo.performance.PerformancePackage;
 import fr.obeo.performance.Scenario;
 import fr.obeo.performance.TestResult;
 import fr.obeo.performance.api.Performance;
-
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Iterables.getFirst;
-import static com.google.common.collect.Iterables.transform;
 
 /**
  * @author <a href="mailto:mikael.barbero@obeo.fr">Mikael Barbero</a>
@@ -123,8 +126,18 @@ public abstract class AbstractEMFComparePerformanceTest {
 			Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("performance", new XMIResourceFactoryImpl());
 		}
 		
-		timestamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
-				.format(new Date());
+		//Deactivate auto-building
+		IWorkspace workspace= ResourcesPlugin.getWorkspace();
+		if (workspace != null) {			
+			IWorkspaceDescription desc= workspace.getDescription();
+			boolean isAutoBuilding= desc.isAutoBuilding();
+			if (isAutoBuilding == true) {
+				desc.setAutoBuilding(false);
+				workspace.setDescription(desc);
+			}
+		}
+		
+		timestamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
 		performance = new Performance("emf.compare.performance");
 	}
 
@@ -171,9 +184,15 @@ public abstract class AbstractEMFComparePerformanceTest {
 			try {
 				writer = new PrintWriter(new BufferedWriter(new FileWriter(output, true), 16384));
 				BufferedReader br = new BufferedReader(new FileReader(output));
-				if (br.readLine() == null) {
+				String readLine = br.readLine();
+				final int columns;
+				if (readLine == null) {
 					br.close();
-					writer.println("Date, Small UML, Nominal UML, Large UML");
+					writer.println("Date, Small UML, Nominal UML, Small Split UML, Nominal Split UML");
+					columns = 4;
+				} else {
+					//Get number of columns that contains measures
+					columns = readLine.split(",").length - 1;
 				}
 				writer.print(timestamp + ",");
 				Collection<Measure> measures = entry.getValue();
@@ -202,12 +221,13 @@ public abstract class AbstractEMFComparePerformanceTest {
 												return "";
 											}
 										});
-	
+									
 									String ret = Joiner.on(';').join(transform2);
 									return ret;
 								}
 							})
 						);
+				joinedMeasure = fillEmptyColumns(joinedMeasure, columns);
 				writer.println(joinedMeasure);
 				
 			} catch (IOException e) {
@@ -223,6 +243,14 @@ public abstract class AbstractEMFComparePerformanceTest {
 		performance = null;
 	}
 	
+	private static String fillEmptyColumns(String joinedMeasure, int columns) {
+		final int filled = joinedMeasure.split(",").length;
+		for (int i = 0; i < columns - filled; i++) {
+			joinedMeasure += ",";
+		}
+		return joinedMeasure;
+	}
+
 	@After
 	public void after() {
 		// try to minimize difference between runs

@@ -10,34 +10,26 @@
  *******************************************************************************/
 package org.eclipse.emf.compare.ide.ui.internal.logical.resolver;
 
-import com.google.common.collect.Maps;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
 import org.eclipse.emf.common.util.AbstractEList;
-import org.eclipse.emf.common.util.AbstractTreeIterator;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.ide.internal.utils.NoNotificationParserPool;
-import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.compare.ide.internal.utils.ProxyNotifierParserPool.IProxyCreationListener;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.util.InternalEList;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 
 /**
@@ -50,30 +42,19 @@ class SynchronizedResourceSet extends ResourceSetImpl {
 	/** Associates URIs with their resources. */
 	private final ConcurrentHashMap<URI, Resource> uriCache;
 
-	public SynchronizedResourceSet() {
+	public SynchronizedResourceSet(IProxyCreationListener proxyListener) {
 		this.uriCache = new ConcurrentHashMap<URI, Resource>();
 		this.resources = new SynchronizedResourcesEList<Resource>();
 		this.loadOptions = super.getLoadOptions();
 		/*
 		 * This resource set is specifically designed to resolve cross resources links, it thus spends a lot
 		 * of time loading resources. The following set of options is what seems to give the most significant
-		 * boost in loading performances, though I did not fine-tune what's really needed here. Take note that
-		 * the use of our own parser pool along with the disabling of notifications is what allows us to
-		 * bypass UML's CacheAdapter and the potential dead locks it causes.
+		 * boost in loading performances, though I did not fine-tune what's really needed here.
 		 */
-		loadOptions.put(XMLResource.OPTION_USE_PARSER_POOL, new NoNotificationParserPool());
+		final NoNotificationParserPool parserPool = new NoNotificationParserPool(true);
+		parserPool.addProxyListener(proxyListener);
+		loadOptions.put(XMLResource.OPTION_USE_PARSER_POOL, parserPool);
 		loadOptions.put(XMLResource.OPTION_USE_DEPRECATED_METHODS, Boolean.FALSE);
-		loadOptions.put(XMLResource.OPTION_DISABLE_NOTIFY, Boolean.TRUE);
-
-		final int bufferSize = 16384;
-		final Map<String, Object> parserProperties = Maps.newHashMap();
-		parserProperties.put("http://apache.org/xml/properties/input-buffer-size", Integer //$NON-NLS-1$
-				.valueOf(bufferSize));
-		loadOptions.put(XMLResource.OPTION_PARSER_PROPERTIES, parserProperties);
-
-		// These two might be superfluous
-		loadOptions.put(XMLResource.OPTION_DEFER_ATTACHMENT, Boolean.TRUE);
-		loadOptions.put(XMLResource.OPTION_DEFER_IDREF_RESOLUTION, Boolean.TRUE);
 
 		/*
 		 * We don't use XMLResource.OPTION_USE_XML_NAME_TO_FEATURE_MAP whereas it could bring performance
@@ -154,109 +135,11 @@ class SynchronizedResourceSet extends ResourceSetImpl {
 		}
 	}
 
-	/*
-	 * TODO this should be made into an extension point : give the user a Resource, and ask for a Set<URI> in
-	 * return, representing the cross references of said resource. Warn the client that implementation should
-	 * be kept fast and should avoid resolution of proxies.
-	 */
-	public Set<URI> discoverCrossReferences(Resource resource, IProgressMonitor monitor) {
-		resource.eSetDeliver(false);
-		final List<EObject> roots = ((InternalEList<EObject>)resource.getContents()).basicList();
-		final Iterator<EObject> resourceContent = roots.iterator();
-
-		final Set<URI> crossReferencedResources = new LinkedHashSet<URI>();
-		while (resourceContent.hasNext()) {
-
-			if (isInterruptedOrCanceled(monitor)) {
-				break;
-			}
-
-			final EObject eObject = resourceContent.next();
-			crossReferencedResources.addAll(resolveCrossReferences(eObject));
-			final TreeIterator<EObject> objectChildren = basicEAllContents(eObject);
-			while (objectChildren.hasNext()) {
-
-				if (isInterruptedOrCanceled(monitor)) {
-					break;
-				}
-
-				final EObject child = objectChildren.next();
-				if (child.eIsProxy()) {
-					final URI proxyURI = ((InternalEObject)child).eProxyURI().trimFragment();
-					crossReferencedResources.add(proxyURI);
-				} else {
-					crossReferencedResources.addAll(resolveCrossReferences(child));
-				}
-			}
-		}
-
-		if (isInterruptedOrCanceled(monitor)) {
-			crossReferencedResources.clear();
-		}
-
-		return crossReferencedResources;
-	}
-
-	private boolean isInterruptedOrCanceled(IProgressMonitor monitor) {
-		return monitor.isCanceled() || Thread.currentThread().isInterrupted();
-	}
-
 	public void unload(Resource resource, @SuppressWarnings("unused") IProgressMonitor monitor) {
 		final URI uri = resource.getURI();
 		uriCache.remove(uri);
 		getResources().remove(resource);
-
-		// Only call "unload()" when really needed as this is both a time and memory hog.
-		// We can't ignore this call with UML because of the CacheAdapter.
-		if (resource.getClass().getSimpleName().startsWith("UMLResource")) { //$NON-NLS-1$
-			resource.unload();
-		}
-	}
-
-	/**
-	 * An implementation of {@link EObject#eAllContents()} that will not resolve its proxies.
-	 * 
-	 * @param eObject
-	 *            The eobject for which contents we need an iterator.
-	 * @return The created {@link TreeIterator}.
-	 */
-	private TreeIterator<EObject> basicEAllContents(final EObject eObject) {
-		return new AbstractTreeIterator<EObject>(eObject, false) {
-			/** Generated SUID. */
-			private static final long serialVersionUID = -617740251257708686L;
-
-			/**
-			 * {@inheritDoc}
-			 * 
-			 * @see org.eclipse.emf.common.util.AbstractTreeIterator#getChildren(java.lang.Object)
-			 */
-			@Override
-			public Iterator<EObject> getChildren(Object obj) {
-				return ((InternalEList<EObject>)((EObject)obj).eContents()).basicIterator();
-			}
-		};
-	}
-
-	/**
-	 * Resolves the cross references of the given EObject, but leaves proxies as-is.
-	 * 
-	 * @param eObject
-	 *            The EObject for which we are to resolve the cross references.
-	 */
-	private Set<URI> resolveCrossReferences(EObject eObject) {
-		final Set<URI> crossReferencedResources = new LinkedHashSet<URI>();
-		final Iterator<EObject> objectCrossRefs = ((InternalEList<EObject>)eObject.eCrossReferences())
-				.basicIterator();
-		while (objectCrossRefs.hasNext()) {
-			final EObject crossRef = objectCrossRefs.next();
-			if (crossRef.eIsProxy()) {
-				final URI proxyURI = ((InternalEObject)crossRef).eProxyURI().trimFragment();
-				if (proxyURI.isPlatformResource()) {
-					crossReferencedResources.add(proxyURI);
-				}
-			}
-		}
-		return crossReferencedResources;
+		resource.eAdapters().clear();
 	}
 
 	/**

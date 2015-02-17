@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Obeo.
+ * Copyright (c) 2012, 2014 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Stefan Dirix - added test for bug 455255
  *******************************************************************************/
 package org.eclipse.emf.compare.tests.merge;
 
@@ -29,6 +30,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -45,6 +47,7 @@ import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.compare.tests.merge.data.IndividualDiffInputData;
+import org.eclipse.emf.compare.tests.nodes.NodeEnum;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -134,6 +137,181 @@ public class IndividualMergeTest {
 		assertNotNull(feature);
 
 		assertEquals("leftValue", originNode.eGet(feature));
+
+		// We should have no difference between left and right ... though they might be different from origin
+		scope = new DefaultComparisonScope(left, right, null);
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMonoChange2WayLtR() throws IOException {
+		final Resource left = input.getAttributeMonoEEnumChangeLeft();
+		final Resource right = input.getAttributeMonoEEnumChangeRight();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(1, differences.size());
+
+		final String featureName = "singlevalueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				changedAttribute("root", featureName, NodeEnum.A, NodeEnum.B)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		assertEquals(NodeEnum.B, originNode.eGet(feature));
+
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMonoChange2WayRtL() throws IOException {
+		final Resource left = input.getAttributeMonoEEnumChangeLeft();
+		final Resource right = input.getAttributeMonoEEnumChangeRight();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(1, differences.size());
+
+		final String featureName = "singlevalueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				changedAttribute("root", featureName, NodeEnum.A, NodeEnum.B)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+		final EObject originNode = getNodeNamed(left, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		assertEquals(NodeEnum.A, originNode.eGet(feature));
+
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMonoChange3WayLeftChangeLtR() throws IOException {
+		final Resource left = input.getAttributeMonoEEnumChangeLeft();
+		final Resource right = input.getAttributeMonoEEnumChangeRight();
+		final Resource origin = input.getAttributeMonoEEnumChangeOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(1, differences.size());
+
+		final String featureName = "singlevalueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				changedAttribute("root", featureName, NodeEnum.A, NodeEnum.B)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		assertEquals(NodeEnum.B, originNode.eGet(feature));
+
+		// We should have no difference between left and right ... though they might be different from origin
+		scope = new DefaultComparisonScope(left, right, null);
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMonoChange3WayLeftChangeRtL() throws IOException {
+		final Resource left = input.getAttributeMonoEEnumChangeLeft();
+		final Resource right = input.getAttributeMonoEEnumChangeRight();
+		final Resource origin = input.getAttributeMonoEEnumChangeOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(1, differences.size());
+
+		final String featureName = "singlevalueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				changedAttribute("root", featureName, NodeEnum.A, NodeEnum.B)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		assertEquals(NodeEnum.A, originNode.eGet(feature));
+
+		// We should have no difference between left and right ... though they might be different from origin
+		scope = new DefaultComparisonScope(left, right, null);
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMonoChange3WayRightChangeLtR() throws IOException {
+		// In order to have changes on the right side, we'll invert right and left
+		final Resource left = input.getAttributeMonoEEnumChangeRight();
+		final Resource right = input.getAttributeMonoEEnumChangeLeft();
+		final Resource origin = input.getAttributeMonoEEnumChangeOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(1, differences.size());
+
+		final String featureName = "singlevalueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.RIGHT),
+				changedAttribute("root", featureName, NodeEnum.A, NodeEnum.B)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		assertEquals(NodeEnum.A, originNode.eGet(feature));
+
+		// We should have no difference between left and right ... though they might be different from origin
+		scope = new DefaultComparisonScope(left, right, null);
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMonoChange3WayRightChangeRtL() throws IOException {
+		final Resource left = input.getAttributeMonoEEnumChangeRight();
+		final Resource right = input.getAttributeMonoEEnumChangeLeft();
+		final Resource origin = input.getAttributeMonoEEnumChangeOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(1, differences.size());
+
+		final String featureName = "singlevalueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.RIGHT),
+				changedAttribute("root", featureName, NodeEnum.A, NodeEnum.B)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		assertEquals(NodeEnum.B, originNode.eGet(feature));
 
 		// We should have no difference between left and right ... though they might be different from origin
 		scope = new DefaultComparisonScope(left, right, null);
@@ -566,6 +744,226 @@ public class IndividualMergeTest {
 		assertNotNull(feature);
 
 		assertNull(originNode.eGet(feature));
+
+		// We should have no difference between left and right ... though they might be different from origin
+		scope = new DefaultComparisonScope(left, right, null);
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMultiAdd2WayLtR() throws IOException {
+		final Resource left = input.getAttributeEEnumMultiAddLeft();
+		final Resource right = input.getAttributeEEnumMultiAddRight();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(3, differences.size());
+
+		final String featureName = "multiValueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.A)));
+		final Diff diff2 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.B)));
+		final Diff diff3 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.C)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff2).copyLeftToRight(diff2, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff3).copyLeftToRight(diff3, new BasicMonitor());
+
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		final Object featureValue = originNode.eGet(feature);
+		assertTrue(featureValue instanceof List<?>);
+		assertEquals(featureValue, Lists.newArrayList(NodeEnum.A, NodeEnum.B, NodeEnum.C));
+
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMultiAdd2WayRtL() throws IOException {
+		final Resource left = input.getAttributeEEnumMultiAddLeft();
+		final Resource right = input.getAttributeEEnumMultiAddRight();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(3, differences.size());
+
+		final String featureName = "multiValueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.A)));
+		final Diff diff2 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.B)));
+		final Diff diff3 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.C)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff2).copyRightToLeft(diff2, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff3).copyRightToLeft(diff3, new BasicMonitor());
+
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		final Object featureValue = originNode.eGet(feature);
+		assertTrue(featureValue instanceof Collection<?>);
+		assertTrue(((Collection<?>)featureValue).isEmpty());
+
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMultiAdd3WayLeftChangeLtR() throws IOException {
+		final Resource left = input.getAttributeEEnumMultiAddLeft();
+		final Resource right = input.getAttributeEEnumMultiAddRight();
+		final Resource origin = input.getAttributeEEnumMultiAddOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(3, differences.size());
+
+		final String featureName = "multiValueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.A)));
+		final Diff diff2 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.B)));
+		final Diff diff3 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.C)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff2).copyLeftToRight(diff2, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff3).copyLeftToRight(diff3, new BasicMonitor());
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		final Object featureValue = originNode.eGet(feature);
+		assertTrue(featureValue instanceof Collection<?>);
+		assertTrue(((Collection<?>)featureValue).containsAll(Lists.newArrayList(NodeEnum.A, NodeEnum.B,
+				NodeEnum.C)));
+
+		// We should have no difference between left and right ... though they might be different from origin
+		scope = new DefaultComparisonScope(left, right, null);
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMultiAdd3WayLeftChangeRtL() throws IOException {
+		final Resource left = input.getAttributeEEnumMultiAddLeft();
+		final Resource right = input.getAttributeEEnumMultiAddRight();
+		final Resource origin = input.getAttributeEEnumMultiAddOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(3, differences.size());
+
+		final String featureName = "multiValueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.A)));
+		final Diff diff2 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.B)));
+		final Diff diff3 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root", featureName, NodeEnum.C)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff2).copyRightToLeft(diff2, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff3).copyRightToLeft(diff3, new BasicMonitor());
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		final Object featureValue = originNode.eGet(feature);
+		assertTrue(featureValue instanceof Collection<?>);
+		assertTrue(((Collection<?>)featureValue).isEmpty());
+
+		// We should have no difference between left and right ... though they might be different from origin
+		scope = new DefaultComparisonScope(left, right, null);
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMultiAdd3WayRightChangeLtR() throws IOException {
+		final Resource left = input.getAttributeEEnumMultiAddRight();
+		final Resource right = input.getAttributeEEnumMultiAddLeft();
+		final Resource origin = input.getAttributeEEnumMultiAddOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(3, differences.size());
+
+		final String featureName = "multiValueEEnumAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.RIGHT),
+				addedToAttribute("root", featureName, NodeEnum.A)));
+		final Diff diff2 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.RIGHT),
+				addedToAttribute("root", featureName, NodeEnum.B)));
+		final Diff diff3 = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.RIGHT),
+				addedToAttribute("root", featureName, NodeEnum.C)));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff2).copyLeftToRight(diff2, new BasicMonitor());
+		mergerRegistry.getHighestRankingMerger(diff3).copyLeftToRight(diff3, new BasicMonitor());
+		final EObject originNode = getNodeNamed(right, "root");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		final Object featureValue = originNode.eGet(feature);
+		assertTrue(featureValue instanceof Collection<?>);
+		assertTrue(((Collection<?>)featureValue).isEmpty());
+
+		// We should have no difference between left and right ... though they might be different from origin
+		scope = new DefaultComparisonScope(left, right, null);
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testAttributeEEnumMultiAdd3WayRightChangeRtL() throws IOException {
+		// In order to have changes on the right side, we'll invert right and left
+		final Resource left = input.getAttributeMultiAddRight();
+		final Resource right = input.getAttributeMultiAddLeft();
+		final Resource origin = input.getAttributeMultiAddOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		assertEquals(1, differences.size());
+
+		final String featureName = "multiValuedAttribute";
+		final Diff diff = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.RIGHT),
+				addedToAttribute("root.origin", featureName, "value1")));
+
+		mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+		final EObject originNode = getNodeNamed(left, "origin");
+		assertNotNull(originNode);
+		final EStructuralFeature feature = originNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+
+		final Object featureValue = originNode.eGet(feature);
+		assertTrue(featureValue instanceof Collection<?>);
+		assertTrue(((Collection<?>)featureValue).contains("value1"));
 
 		// We should have no difference between left and right ... though they might be different from origin
 		scope = new DefaultComparisonScope(left, right, null);
@@ -2371,6 +2769,25 @@ public class IndividualMergeTest {
 
 		assertEquals(sourceContainerNode, sourceNode.eContainer());
 
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testReferenceDifferentContainmentMove3Way() throws IOException {
+		final Resource left = input.getReferenceDifferentContainmentMoveLeft();
+		final Resource right = input.getReferenceDifferentContainmentMoveRight();
+		final Resource origin = input.getReferenceDifferentContainmentMoveOrigin();
+
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+		for (Diff diff : differences) {
+			mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+		}
+
+		scope = new DefaultComparisonScope(right, origin, null);
 		comparison = EMFCompare.builder().build().compare(scope);
 		assertEquals(0, comparison.getDifferences().size());
 	}

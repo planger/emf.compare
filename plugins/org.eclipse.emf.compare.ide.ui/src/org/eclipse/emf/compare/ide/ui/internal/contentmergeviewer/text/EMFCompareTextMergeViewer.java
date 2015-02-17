@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Obeo.
+ * Copyright (c) 2012, 2015 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Alexandra Buzila - Bug 457117
  *******************************************************************************/
 package org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.text;
 
@@ -22,9 +23,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.EventObject;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.compare.CompareNavigator;
 import org.eclipse.compare.ICompareNavigator;
@@ -34,8 +32,6 @@ import org.eclipse.compare.contentmergeviewer.TextMergeViewer;
 import org.eclipse.compare.internal.CompareHandlerService;
 import org.eclipse.compare.internal.MergeSourceViewer;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.emf.common.command.CommandStackListener;
 import org.eclipse.emf.common.notify.Notifier;
 import org.eclipse.emf.common.util.EList;
@@ -47,7 +43,6 @@ import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.command.ICompareCommandStack;
 import org.eclipse.emf.compare.command.ICompareCopyCommand;
 import org.eclipse.emf.compare.domain.ICompareEditingDomain;
-import org.eclipse.emf.compare.ide.ui.internal.EMFCompareIDEUIPlugin;
 import org.eclipse.emf.compare.ide.ui.internal.configuration.EMFCompareConfiguration;
 import org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.util.DynamicObject;
 import org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.util.RedoAction;
@@ -55,6 +50,7 @@ import org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.util.UndoActio
 import org.eclipse.emf.compare.ide.ui.internal.structuremergeviewer.CompareInputAdapter;
 import org.eclipse.emf.compare.rcp.ui.internal.configuration.ICompareEditingDomainChange;
 import org.eclipse.emf.compare.rcp.ui.internal.util.SWTUtil;
+import org.eclipse.emf.compare.rcp.ui.mergeviewer.IMergeViewer.MergeViewerSide;
 import org.eclipse.emf.compare.utils.IEqualityHelper;
 import org.eclipse.emf.compare.utils.ReferenceUtil;
 import org.eclipse.emf.ecore.EAttribute;
@@ -89,10 +85,6 @@ public class EMFCompareTextMergeViewer extends TextMergeViewer implements Comman
 
 	private RedoAction fRedoAction;
 
-	private final DelayedExecutor fDelayedExecutor;
-
-	private final ScheduledExecutorService fExecutorService;
-
 	/**
 	 * @param parent
 	 * @param configuration
@@ -101,28 +93,9 @@ public class EMFCompareTextMergeViewer extends TextMergeViewer implements Comman
 		super(parent, configuration);
 		setContentProvider(new EMFCompareTextMergeViewerContentProvider(configuration));
 
-		fExecutorService = Executors.newSingleThreadScheduledExecutor();
-		fDelayedExecutor = new DelayedExecutor(fExecutorService);
-
 		editingDomainChange(null, configuration.getEditingDomain());
 
 		configuration.getEventBus().register(this);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.eclipse.compare.contentmergeviewer.TextMergeViewer#flushContent(java.lang.Object,
-	 *      org.eclipse.core.runtime.IProgressMonitor)
-	 */
-	@Override
-	protected void flushContent(Object oldInput, IProgressMonitor monitor) {
-		try {
-			fExecutorService.awaitTermination(1, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			EMFCompareIDEUIPlugin.getDefault().log(e);
-		}
-		super.flushContent(oldInput, monitor);
 	}
 
 	/**
@@ -138,7 +111,8 @@ public class EMFCompareTextMergeViewer extends TextMergeViewer implements Comman
 
 	public void editingDomainChange(ICompareEditingDomain oldValue, ICompareEditingDomain newValue) {
 		if (oldValue != null) {
-			oldValue.getCommandStack().removeCommandStackListener(this);
+			ICompareCommandStack commandStack = oldValue.getCommandStack();
+			commandStack.removeCommandStackListener(this);
 		}
 		if (newValue != oldValue) {
 			if (newValue != null) {
@@ -248,7 +222,7 @@ public class EMFCompareTextMergeViewer extends TextMergeViewer implements Comman
 		String newValue = (String)runnable.getResult();
 
 		final boolean oldAndNewEquals = equalityHelper.matchingAttributeValues(newValue, oldValue);
-		if (eObject != null && !oldAndNewEquals && getCompareConfiguration().isLeftEditable()) {
+		if (eObject != null && !oldAndNewEquals && getCompareConfiguration().isEditable(isLeft)) {
 			// Save the change on left side
 			getCompareConfiguration().getEditingDomain().getCommandStack().execute(
 					new UpdateModelAndRejectDiffCommand(getCompareConfiguration().getEditingDomain()
@@ -309,48 +283,43 @@ public class EMFCompareTextMergeViewer extends TextMergeViewer implements Comman
 	@Override
 	protected void createControls(Composite composite) {
 		super.createControls(composite);
-		attachListeners(getAncestorSourceViewer());
-		attachListeners(getLeftSourceViewer());
-		attachListeners(getRightSourceViewer());
+		attachListeners(getAncestorSourceViewer(), MergeViewerSide.ANCESTOR);
+		attachListeners(getLeftSourceViewer(), MergeViewerSide.LEFT);
+		attachListeners(getRightSourceViewer(), MergeViewerSide.RIGHT);
 	}
 
-	protected void attachListeners(final MergeSourceViewer viewer) {
-		final StyledText textWidget = viewer.getSourceViewer().getTextWidget();
-		textWidget.addFocusListener(new FocusListener() {
-			public void focusLost(FocusEvent e) {
-				getHandlerService().setGlobalActionHandler(ActionFactory.UNDO.getId(), null);
-				getHandlerService().setGlobalActionHandler(ActionFactory.REDO.getId(), null);
-			}
-
-			public void focusGained(FocusEvent e) {
-				getHandlerService().setGlobalActionHandler(ActionFactory.UNDO.getId(), fUndoAction);
-				getHandlerService().setGlobalActionHandler(ActionFactory.REDO.getId(), fRedoAction);
-			}
-		});
-
-		viewer.getSourceViewer().addTextListener(new ITextListener() {
-			public void textChanged(TextEvent event) {
-				final Object oldInput = getInput();
-				if (event.getDocumentEvent() != null && oldInput instanceof CompareInputAdapter) {
-					fDelayedExecutor.schedule(new Runnable() {
-						public void run() {
-							// When we leave the current input
-							if (oldInput instanceof CompareInputAdapter) {
-								final AttributeChange diff = (AttributeChange)((CompareInputAdapter)oldInput)
-										.getComparisonObject();
-								final EAttribute eAttribute = diff.getAttribute();
-								final Match match = diff.getMatch();
-								final IEqualityHelper equalityHelper = match.getComparison()
-										.getEqualityHelper();
-
-								updateModel(diff, eAttribute, equalityHelper, match.getLeft(), true);
-								updateModel(diff, eAttribute, equalityHelper, match.getRight(), false);
-							}
-						}
-					});
+	protected void attachListeners(MergeSourceViewer viewer, final MergeViewerSide side) {
+		// Nothing to do on the ancestor pane, which should not be edited
+		if (viewer != null && (side == MergeViewerSide.LEFT || side == MergeViewerSide.RIGHT)) {
+			final StyledText textWidget = viewer.getSourceViewer().getTextWidget();
+			textWidget.addFocusListener(new FocusListener() {
+				public void focusLost(FocusEvent e) {
+					getHandlerService().setGlobalActionHandler(ActionFactory.UNDO.getId(), null);
+					getHandlerService().setGlobalActionHandler(ActionFactory.REDO.getId(), null);
 				}
-			}
-		});
+
+				public void focusGained(FocusEvent e) {
+					getHandlerService().setGlobalActionHandler(ActionFactory.UNDO.getId(), fUndoAction);
+					getHandlerService().setGlobalActionHandler(ActionFactory.REDO.getId(), fRedoAction);
+				}
+			});
+			viewer.getSourceViewer().addTextListener(new ITextListener() {
+				public void textChanged(TextEvent event) {
+					final Object oldInput = getInput();
+					if (event.getDocumentEvent() != null && oldInput instanceof CompareInputAdapter) {
+						// When we leave the current input
+						final AttributeChange diff = (AttributeChange)((CompareInputAdapter)oldInput)
+								.getComparisonObject();
+						final EAttribute eAttribute = diff.getAttribute();
+						final Match match = diff.getMatch();
+						final IEqualityHelper equalityHelper = match.getComparison().getEqualityHelper();
+
+						updateModel(diff, eAttribute, equalityHelper, getMatchedEObject(match, side),
+								side == MergeViewerSide.LEFT);
+					}
+				}
+			});
+		}
 	}
 
 	/**
@@ -418,22 +387,12 @@ public class EMFCompareTextMergeViewer extends TextMergeViewer implements Comman
 	 */
 	@Override
 	protected void handleDispose(DisposeEvent event) {
-		fExecutorService.shutdown();
-		try {
-			if (!fExecutorService.awaitTermination(1, TimeUnit.SECONDS)) {
-				fExecutorService.shutdownNow();
-				if (!fExecutorService.awaitTermination(1, TimeUnit.SECONDS)) {
-					EMFCompareIDEUIPlugin.getDefault().log(IStatus.WARNING,
-							"The executor of EMFCompareTextMergeViewer did not shutdown properly."); //$NON-NLS-1$
-				}
-			}
-		} catch (InterruptedException e) {
-			EMFCompareIDEUIPlugin.getDefault().log(e);
-		}
-
 		getCompareConfiguration().getEventBus().unregister(this);
 
 		editingDomainChange(getCompareConfiguration().getEditingDomain(), null);
+
+		fRedoAction = null;
+		fUndoAction = null;
 
 		super.handleDispose(event);
 	}
@@ -518,4 +477,30 @@ public class EMFCompareTextMergeViewer extends TextMergeViewer implements Comman
 
 	}
 
+	/**
+	 * Provides the EObject matched by the given match that is on the given side.
+	 * 
+	 * @param match
+	 *            The match
+	 * @param side
+	 *            The side to retrieve the value from
+	 * @return The left, right, or origin value of the given match, or <code>null</code> if the given match is
+	 *         <code>null</code>.
+	 * @since 4.1
+	 */
+	protected EObject getMatchedEObject(Match match, MergeViewerSide side) {
+		if (match == null) {
+			return null;
+		}
+		switch (side) {
+			case LEFT:
+				return match.getLeft();
+			case RIGHT:
+				return match.getRight();
+			case ANCESTOR:
+				return match.getOrigin();
+			default:
+				throw new IllegalStateException();
+		}
+	}
 }

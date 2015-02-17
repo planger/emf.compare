@@ -125,6 +125,16 @@ public class EMFCompareConfiguration extends ForwardingCompareConfiguration impl
 	public void dispose() {
 		super.dispose();
 		compareConfiguration.removePropertyChangeListener(propertyChangeListener);
+		// CompareConfiguration does not clear its properties list...
+		// Lets clean our own mess ourselves
+		// EVENT_BUS must not be set to null
+		compareConfiguration.setProperty(COMPARISON_SCOPE, null);
+		compareConfiguration.setProperty(COMPARE_RESULT, null);
+		compareConfiguration.setProperty(SMV_FILTERS, null);
+		compareConfiguration.setProperty(EDITING_DOMAIN, null);
+		compareConfiguration.setProperty(ADAPTER_FACTORY, null);
+		compareConfiguration.setProperty(SMV_GROUP_PROVIDERS, null);
+		compareConfiguration.setProperty(PREVIEW_MERGE_MODE, null);
 	}
 
 	public boolean getBooleanProperty(String key, boolean dflt) {

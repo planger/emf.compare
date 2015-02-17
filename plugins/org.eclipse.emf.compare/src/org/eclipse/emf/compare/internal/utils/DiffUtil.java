@@ -9,6 +9,7 @@
  *     Obeo - initial API and implementation
  *     Philip Langer - Bugs 440679, 441258, 442439, 443504, 446739, 451048 and refactorings
  *     Alexandra Buzila - Fixes for bug 448464
+ *     Stefan Dirix - Bug 455255 and Refactoring
  *******************************************************************************/
 package org.eclipse.emf.compare.internal.utils;
 
@@ -946,18 +947,10 @@ public final class DiffUtil {
 		final Match match = diff.getMatch();
 
 		if (diff.getKind() == DifferenceKind.MOVE) {
-			final boolean undoingLeft = rightToLeft && diff.getSource() == DifferenceSource.LEFT;
-			final boolean undoingRight = !rightToLeft && diff.getSource() == DifferenceSource.RIGHT;
 			final EObject targetContainer = getTargetContainer(comparison, diff, rightToLeft);
-			if ((undoingLeft || undoingRight) && match.getOrigin() != null) {
-				expectedContainer = comparison.getMatch(targetContainer).getOrigin();
-			} else {
-				if (rightToLeft) {
-					expectedContainer = comparison.getMatch(targetContainer).getRight();
-				} else {
-					expectedContainer = comparison.getMatch(targetContainer).getLeft();
-				}
-			}
+			final Match targetMatch = comparison.getMatch(targetContainer);
+
+			expectedContainer = ComparisonUtil.getExpectedSide(targetMatch, diff.getSource(), rightToLeft);
 		} else {
 			if (diff.getKind() == DifferenceKind.DELETE && match.getOrigin() != null) {
 				expectedContainer = match.getOrigin();
@@ -1068,7 +1061,9 @@ public final class DiffUtil {
 
 		if (isContainmentReferenceMove(diff) && isTargetOnTheRight(diff, rightToLeft)) {
 			final Match valueMatch = comparison.getMatch((EObject)diffValue);
-			targetFeature = valueMatch.getRight().eContainingFeature();
+			final EObject expectedValue = ComparisonUtil.getExpectedSide(valueMatch, diff.getSource(),
+					rightToLeft);
+			targetFeature = expectedValue.eContainingFeature();
 		} else {
 			targetFeature = diffFeature;
 		}

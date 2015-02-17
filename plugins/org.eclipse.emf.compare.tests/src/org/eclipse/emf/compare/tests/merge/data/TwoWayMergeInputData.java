@@ -8,6 +8,7 @@
  * Contributors:
  *     Philip Langer - initial API and implementation
  *     Alexandra Buzila - test data for bug 446252
+ *     Stefan Dirix - test data for bug 453749
  *******************************************************************************/
 package org.eclipse.emf.compare.tests.merge.data;
 
@@ -15,6 +16,7 @@ import java.io.IOException;
 
 import org.eclipse.emf.compare.tests.framework.AbstractInputData;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 
 @SuppressWarnings("nls")
 public class TwoWayMergeInputData extends AbstractInputData {
@@ -80,5 +82,13 @@ public class TwoWayMergeInputData extends AbstractInputData {
 
 	public Resource getMoveToFeatureMapL2RRight() throws IOException {
 		return loadFromClassLoader("twoway/movetofeaturemap/ltr/right.nodes");
+	}
+
+	public Resource getDeleteFeatureMapNonContainmentsL2RLeft(ResourceSet resourceSet) throws IOException {
+		return loadFromClassLoader("twoway/deletefeaturemapnoncontainments/ltr/left.nodes", resourceSet);
+	}
+
+	public Resource getDeleteFeatureMapNonContainmentsL2RRight(ResourceSet resourceSet) throws IOException {
+		return loadFromClassLoader("twoway/deletefeaturemapnoncontainments/ltr/right.nodes", resourceSet);
 	}
 }

@@ -8,6 +8,7 @@
  * Contributors:
  *     Philip Langer - initial API and implementation
  *     Alexandra Buzila - Test case for bug 446252
+ *     Stefan Dirix - Test case for bug 453749
  *******************************************************************************/
 package org.eclipse.emf.compare.tests.merge;
 
@@ -37,6 +38,8 @@ import org.eclipse.emf.compare.tests.nodes.NodeOppositeRefOneToMany;
 import org.eclipse.emf.compare.tests.nodes.NodesPackage;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.junit.Test;
 
 /**
@@ -198,6 +201,21 @@ public class TwoWayBatchMergingTest {
 	public void mergingMoveToFeatureMapL2R() throws IOException {
 		final Resource left = input.getMoveToFeatureMapL2RLeft();
 		final Resource right = input.getMoveToFeatureMapL2RRight();
+		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT);
+	}
+
+	/**
+	 * Tests a scenario in which a feature map contains multiple references to the same node without
+	 * containing it. It is tested if the merger can correctly delete some of these references.
+	 *
+	 * @throws IOException
+	 *             if {@link TwoWayMergeInputData} fails to load the test models.
+	 */
+	@Test
+	public void mergingDeleteFeatureMapNonContainmentsL2R() throws IOException {
+		final ResourceSet resourceSet = new ResourceSetImpl();
+		final Resource left = input.getDeleteFeatureMapNonContainmentsL2RLeft(resourceSet);
+		final Resource right = input.getDeleteFeatureMapNonContainmentsL2RRight(resourceSet);
 		batchMergeAndAssertEquality(left, right, Direction.LEFT_TO_RIGHT);
 	}
 

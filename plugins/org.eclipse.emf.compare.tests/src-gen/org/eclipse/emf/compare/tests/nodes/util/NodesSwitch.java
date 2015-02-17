@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011, 2014 Obeo.
+ * Copyright (c) 2011, 2012 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -185,6 +185,20 @@ public class NodesSwitch<T> {
 				NodeFeatureMapContainment2 nodeFeatureMapContainment2 = (NodeFeatureMapContainment2)theEObject;
 				T result = caseNodeFeatureMapContainment2(nodeFeatureMapContainment2);
 				if (result == null) result = caseNode(nodeFeatureMapContainment2);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case NodesPackage.NODE_SINGLE_VALUE_EENUM_ATTRIBUTE: {
+				NodeSingleValueEEnumAttribute nodeSingleValueEEnumAttribute = (NodeSingleValueEEnumAttribute)theEObject;
+				T result = caseNodeSingleValueEEnumAttribute(nodeSingleValueEEnumAttribute);
+				if (result == null) result = caseNode(nodeSingleValueEEnumAttribute);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case NodesPackage.NODE_MULTI_VALUE_EENUM_ATTRIBUTE: {
+				NodeMultiValueEEnumAttribute nodeMultiValueEEnumAttribute = (NodeMultiValueEEnumAttribute)theEObject;
+				T result = caseNodeMultiValueEEnumAttribute(nodeMultiValueEEnumAttribute);
+				if (result == null) result = caseNode(nodeMultiValueEEnumAttribute);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
@@ -391,6 +405,36 @@ public class NodesSwitch<T> {
 	 * @generated
 	 */
 	public T caseNodeFeatureMapContainment2(NodeFeatureMapContainment2 object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Node Single Value EEnum Attribute</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Node Single Value EEnum Attribute</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseNodeSingleValueEEnumAttribute(NodeSingleValueEEnumAttribute object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Node Multi Value EEnum Attribute</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Node Multi Value EEnum Attribute</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseNodeMultiValueEEnumAttribute(NodeMultiValueEEnumAttribute object) {
 		return null;
 	}
 

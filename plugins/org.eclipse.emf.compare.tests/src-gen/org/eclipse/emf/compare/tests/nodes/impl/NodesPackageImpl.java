@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011, 2014 Obeo.
+ * Copyright (c) 2011, 2012 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,9 +12,11 @@ package org.eclipse.emf.compare.tests.nodes.impl;
 
 import org.eclipse.emf.compare.tests.nodes.MonoValuedNodeFeatureMapNonContainment;
 import org.eclipse.emf.compare.tests.nodes.Node;
+import org.eclipse.emf.compare.tests.nodes.NodeEnum;
 import org.eclipse.emf.compare.tests.nodes.NodeFeatureMapContainment;
 import org.eclipse.emf.compare.tests.nodes.NodeFeatureMapContainment2;
 import org.eclipse.emf.compare.tests.nodes.NodeFeatureMapNonContainment;
+import org.eclipse.emf.compare.tests.nodes.NodeMultiValueEEnumAttribute;
 import org.eclipse.emf.compare.tests.nodes.NodeMultiValueReference;
 import org.eclipse.emf.compare.tests.nodes.NodeMultiValuedAttribute;
 import org.eclipse.emf.compare.tests.nodes.NodeMultipleContainment;
@@ -23,134 +25,162 @@ import org.eclipse.emf.compare.tests.nodes.NodeOppositeRefOneToMany;
 import org.eclipse.emf.compare.tests.nodes.NodeOppositeRefOneToOne;
 import org.eclipse.emf.compare.tests.nodes.NodeSingleValueAttribute;
 import org.eclipse.emf.compare.tests.nodes.NodeSingleValueContainment;
+import org.eclipse.emf.compare.tests.nodes.NodeSingleValueEEnumAttribute;
 import org.eclipse.emf.compare.tests.nodes.NodeSingleValueReference;
 import org.eclipse.emf.compare.tests.nodes.NodesFactory;
 import org.eclipse.emf.compare.tests.nodes.NodesPackage;
+
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+
 import org.eclipse.emf.ecore.impl.EPackageImpl;
 
 /**
- * <!-- begin-user-doc --> An implementation of the model <b>Package</b>. <!-- end-user-doc -->
- * 
+ * <!-- begin-user-doc -->
+ * An implementation of the model <b>Package</b>.
+ * <!-- end-user-doc -->
  * @generated
  */
 public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public static final String copyright = "Copyright (c) 2011, 2012 Obeo.\r\nAll rights reserved. This program and the accompanying materials\r\nare made available under the terms of the Eclipse Public License v1.0\r\nwhich accompanies this distribution, and is available at\r\nhttp://www.eclipse.org/legal/epl-v10.html\r\n\r\nContributors:\r\n    Obeo - initial API and implementation"; //$NON-NLS-1$
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeMultipleContainmentEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeSingleValueContainmentEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeSingleValueAttributeEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeMultiValuedAttributeEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeSingleValueReferenceEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeMultiValueReferenceEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeOppositeRefOneToOneEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeOppositeRefOneToManyEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeOppositeRefManyToManyEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeFeatureMapContainmentEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeFeatureMapNonContainmentEClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass nodeFeatureMapContainment2EClass = null;
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EClass nodeSingleValueEEnumAttributeEClass = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EClass nodeMultiValueEEnumAttributeEClass = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private EClass monoValuedNodeFeatureMapNonContainmentEClass = null;
 
 	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EEnum nodeEnumEEnum = null;
+
+	/**
 	 * Creates an instance of the model <b>Package</b>, registered with
-	 * {@link org.eclipse.emf.ecore.EPackage.Registry EPackage.Registry} by the package package URI value.
-	 * <p>
-	 * Note: the correct way to create the package is via the static factory method {@link #init init()},
-	 * which also performs initialization of the package, or returns the registered package, if one already
-	 * exists. <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * {@link org.eclipse.emf.ecore.EPackage.Registry EPackage.Registry} by the package
+	 * package URI value.
+	 * <p>Note: the correct way to create the package is via the static
+	 * factory method {@link #init init()}, which also performs
+	 * initialization of the package, or returns the registered package,
+	 * if one already exists.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @see org.eclipse.emf.ecore.EPackage.Registry
 	 * @see org.eclipse.emf.compare.tests.nodes.NodesPackage#eNS_URI
 	 * @see #init()
@@ -161,34 +191,29 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private static boolean isInited = false;
 
 	/**
-	 * Creates, registers, and initializes the <b>Package</b> for this model, and for any others upon which it
-	 * depends.
-	 * <p>
-	 * This method is used to initialize {@link NodesPackage#eINSTANCE} when that field is accessed. Clients
-	 * should not invoke it directly. Instead, they should simply access that field to obtain the package.
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
+	 * Creates, registers, and initializes the <b>Package</b> for this model, and for any others upon which it depends.
 	 * 
+	 * <p>This method is used to initialize {@link NodesPackage#eINSTANCE} when that field is accessed.
+	 * Clients should not invoke it directly. Instead, they should simply access that field to obtain the package.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @see #eNS_URI
 	 * @see #createPackageContents()
 	 * @see #initializePackageContents()
 	 * @generated
 	 */
 	public static NodesPackage init() {
-		if (isInited) {
-			return (NodesPackage)EPackage.Registry.INSTANCE.getEPackage(NodesPackage.eNS_URI);
-		}
+		if (isInited) return (NodesPackage)EPackage.Registry.INSTANCE.getEPackage(NodesPackage.eNS_URI);
 
 		// Obtain or create and register package
-		NodesPackageImpl theNodesPackage = (NodesPackageImpl)(EPackage.Registry.INSTANCE.get(eNS_URI) instanceof NodesPackageImpl ? EPackage.Registry.INSTANCE
-				.get(eNS_URI)
-				: new NodesPackageImpl());
+		NodesPackageImpl theNodesPackage = (NodesPackageImpl)(EPackage.Registry.INSTANCE.get(eNS_URI) instanceof NodesPackageImpl ? EPackage.Registry.INSTANCE.get(eNS_URI) : new NodesPackageImpl());
 
 		isInited = true;
 
@@ -201,14 +226,15 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 		// Mark meta-data to indicate it can't be changed
 		theNodesPackage.freeze();
 
+  
 		// Update the registry and return the package
 		EPackage.Registry.INSTANCE.put(NodesPackage.eNS_URI, theNodesPackage);
 		return theNodesPackage;
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNode() {
@@ -216,8 +242,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EAttribute getNode_Name() {
@@ -225,8 +251,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNode_ContainmentRef1() {
@@ -234,8 +260,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeMultipleContainment() {
@@ -243,8 +269,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeMultipleContainment_ContainmentRef2() {
@@ -252,8 +278,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeMultipleContainment_ContainmentRef3() {
@@ -261,8 +287,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeSingleValueContainment() {
@@ -270,8 +296,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeSingleValueContainment_SingleValueContainment() {
@@ -279,8 +305,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeSingleValueAttribute() {
@@ -288,8 +314,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EAttribute getNodeSingleValueAttribute_SingleValuedAttribute() {
@@ -297,8 +323,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeMultiValuedAttribute() {
@@ -306,8 +332,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EAttribute getNodeMultiValuedAttribute_MultiValuedAttribute() {
@@ -315,8 +341,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeSingleValueReference() {
@@ -324,8 +350,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeSingleValueReference_SingleValuedReference() {
@@ -333,8 +359,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeMultiValueReference() {
@@ -342,8 +368,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeMultiValueReference_MultiValuedReference() {
@@ -351,8 +377,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeOppositeRefOneToOne() {
@@ -360,8 +386,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeOppositeRefOneToOne_Source() {
@@ -369,8 +395,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeOppositeRefOneToOne_Destination() {
@@ -378,8 +404,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeOppositeRefOneToMany() {
@@ -387,8 +413,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeOppositeRefOneToMany_Source() {
@@ -396,8 +422,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeOppositeRefOneToMany_Destination() {
@@ -405,8 +431,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeOppositeRefManyToMany() {
@@ -414,8 +440,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeOppositeRefManyToMany_Source() {
@@ -423,8 +449,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeOppositeRefManyToMany_Destination() {
@@ -432,8 +458,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeFeatureMapContainment() {
@@ -441,8 +467,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EAttribute getNodeFeatureMapContainment_Map() {
@@ -450,8 +476,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeFeatureMapContainment_FirstKey() {
@@ -459,8 +485,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeFeatureMapContainment_SecondKey() {
@@ -468,8 +494,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeFeatureMapNonContainment() {
@@ -477,8 +503,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EAttribute getNodeFeatureMapNonContainment_MapNC() {
@@ -486,8 +512,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeFeatureMapNonContainment_FirstKeyNC() {
@@ -495,8 +521,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeFeatureMapNonContainment_SecondKeyNC() {
@@ -504,8 +530,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getNodeFeatureMapContainment2() {
@@ -513,8 +539,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EAttribute getNodeFeatureMapContainment2_Map2() {
@@ -522,8 +548,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeFeatureMapContainment2_Multiple() {
@@ -531,8 +557,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getNodeFeatureMapContainment2_Single() {
@@ -540,8 +566,44 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EClass getNodeSingleValueEEnumAttribute() {
+		return nodeSingleValueEEnumAttributeEClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getNodeSingleValueEEnumAttribute_SinglevalueEEnumAttribute() {
+		return (EAttribute)nodeSingleValueEEnumAttributeEClass.getEStructuralFeatures().get(0);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EClass getNodeMultiValueEEnumAttribute() {
+		return nodeMultiValueEEnumAttributeEClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getNodeMultiValueEEnumAttribute_MultiValueEEnumAttribute() {
+		return (EAttribute)nodeMultiValueEEnumAttributeEClass.getEStructuralFeatures().get(0);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EClass getMonoValuedNodeFeatureMapNonContainment() {
@@ -549,8 +611,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EAttribute getMonoValuedNodeFeatureMapNonContainment_MonoMap() {
@@ -558,8 +620,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey() {
@@ -567,8 +629,8 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public EReference getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey() {
@@ -576,8 +638,17 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EEnum getNodeEnum() {
+		return nodeEnumEEnum;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public NodesFactory getNodesFactory() {
@@ -585,22 +656,21 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private boolean isCreated = false;
 
 	/**
-	 * Creates the meta-model objects for the package. This method is guarded to have no affect on any
-	 * invocation but its first. <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * Creates the meta-model objects for the package.  This method is
+	 * guarded to have no affect on any invocation but its first.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public void createPackageContents() {
-		if (isCreated) {
-			return;
-		}
+		if (isCreated) return;
 		isCreated = true;
 
 		// Create classes and their features
@@ -613,8 +683,7 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 		createEReference(nodeMultipleContainmentEClass, NODE_MULTIPLE_CONTAINMENT__CONTAINMENT_REF3);
 
 		nodeSingleValueContainmentEClass = createEClass(NODE_SINGLE_VALUE_CONTAINMENT);
-		createEReference(nodeSingleValueContainmentEClass,
-				NODE_SINGLE_VALUE_CONTAINMENT__SINGLE_VALUE_CONTAINMENT);
+		createEReference(nodeSingleValueContainmentEClass, NODE_SINGLE_VALUE_CONTAINMENT__SINGLE_VALUE_CONTAINMENT);
 
 		nodeSingleValueAttributeEClass = createEClass(NODE_SINGLE_VALUE_ATTRIBUTE);
 		createEAttribute(nodeSingleValueAttributeEClass, NODE_SINGLE_VALUE_ATTRIBUTE__SINGLE_VALUED_ATTRIBUTE);
@@ -655,32 +724,37 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 		createEReference(nodeFeatureMapContainment2EClass, NODE_FEATURE_MAP_CONTAINMENT2__MULTIPLE);
 		createEReference(nodeFeatureMapContainment2EClass, NODE_FEATURE_MAP_CONTAINMENT2__SINGLE);
 
+		nodeSingleValueEEnumAttributeEClass = createEClass(NODE_SINGLE_VALUE_EENUM_ATTRIBUTE);
+		createEAttribute(nodeSingleValueEEnumAttributeEClass, NODE_SINGLE_VALUE_EENUM_ATTRIBUTE__SINGLEVALUE_EENUM_ATTRIBUTE);
+
+		nodeMultiValueEEnumAttributeEClass = createEClass(NODE_MULTI_VALUE_EENUM_ATTRIBUTE);
+		createEAttribute(nodeMultiValueEEnumAttributeEClass, NODE_MULTI_VALUE_EENUM_ATTRIBUTE__MULTI_VALUE_EENUM_ATTRIBUTE);
+
 		monoValuedNodeFeatureMapNonContainmentEClass = createEClass(MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT);
-		createEAttribute(monoValuedNodeFeatureMapNonContainmentEClass,
-				MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__MONO_MAP);
-		createEReference(monoValuedNodeFeatureMapNonContainmentEClass,
-				MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__FIRST_MONO_KEY);
-		createEReference(monoValuedNodeFeatureMapNonContainmentEClass,
-				MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__SECOND_MONO_KEY);
+		createEAttribute(monoValuedNodeFeatureMapNonContainmentEClass, MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__MONO_MAP);
+		createEReference(monoValuedNodeFeatureMapNonContainmentEClass, MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__FIRST_MONO_KEY);
+		createEReference(monoValuedNodeFeatureMapNonContainmentEClass, MONO_VALUED_NODE_FEATURE_MAP_NON_CONTAINMENT__SECOND_MONO_KEY);
+
+		// Create enums
+		nodeEnumEEnum = createEEnum(NODE_ENUM);
 	}
 
 	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	private boolean isInitialized = false;
 
 	/**
-	 * Complete the initialization of the package and its meta-model. This method is guarded to have no affect
-	 * on any invocation but its first. <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * Complete the initialization of the package and its meta-model.  This
+	 * method is guarded to have no affect on any invocation but its first.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	public void initializePackageContents() {
-		if (isInitialized) {
-			return;
-		}
+		if (isInitialized) return;
 		isInitialized = true;
 
 		// Initialize package
@@ -705,179 +779,77 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 		nodeFeatureMapContainmentEClass.getESuperTypes().add(this.getNode());
 		nodeFeatureMapNonContainmentEClass.getESuperTypes().add(this.getNode());
 		nodeFeatureMapContainment2EClass.getESuperTypes().add(this.getNode());
+		nodeSingleValueEEnumAttributeEClass.getESuperTypes().add(this.getNode());
+		nodeMultiValueEEnumAttributeEClass.getESuperTypes().add(this.getNode());
 		monoValuedNodeFeatureMapNonContainmentEClass.getESuperTypes().add(this.getNode());
 
 		// Initialize classes and features; add operations and parameters
 		initEClass(nodeEClass, Node.class, "Node", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEAttribute(
-				getNode_Name(),
-				ecorePackage.getEString(),
-				"name", null, 0, 1, Node.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNode_ContainmentRef1(),
-				this.getNode(),
-				null,
-				"containmentRef1", null, 0, -1, Node.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEAttribute(getNode_Name(), ecorePackage.getEString(), "name", null, 0, 1, Node.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNode_ContainmentRef1(), this.getNode(), null, "containmentRef1", null, 0, -1, Node.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeMultipleContainmentEClass, NodeMultipleContainment.class,
-				"NodeMultipleContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEReference(
-				getNodeMultipleContainment_ContainmentRef2(),
-				this.getNode(),
-				null,
-				"containmentRef2", null, 0, -1, NodeMultipleContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeMultipleContainment_ContainmentRef3(),
-				this.getNode(),
-				null,
-				"containmentRef3", null, 0, -1, NodeMultipleContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeMultipleContainmentEClass, NodeMultipleContainment.class, "NodeMultipleContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEReference(getNodeMultipleContainment_ContainmentRef2(), this.getNode(), null, "containmentRef2", null, 0, -1, NodeMultipleContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeMultipleContainment_ContainmentRef3(), this.getNode(), null, "containmentRef3", null, 0, -1, NodeMultipleContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeSingleValueContainmentEClass, NodeSingleValueContainment.class,
-				"NodeSingleValueContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEReference(
-				getNodeSingleValueContainment_SingleValueContainment(),
-				this.getNode(),
-				null,
-				"singleValueContainment", null, 0, 1, NodeSingleValueContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeSingleValueContainmentEClass, NodeSingleValueContainment.class, "NodeSingleValueContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEReference(getNodeSingleValueContainment_SingleValueContainment(), this.getNode(), null, "singleValueContainment", null, 0, 1, NodeSingleValueContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeSingleValueAttributeEClass, NodeSingleValueAttribute.class,
-				"NodeSingleValueAttribute", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEAttribute(
-				getNodeSingleValueAttribute_SingleValuedAttribute(),
-				ecorePackage.getEString(),
-				"singleValuedAttribute", null, 0, 1, NodeSingleValueAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeSingleValueAttributeEClass, NodeSingleValueAttribute.class, "NodeSingleValueAttribute", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getNodeSingleValueAttribute_SingleValuedAttribute(), ecorePackage.getEString(), "singleValuedAttribute", null, 0, 1, NodeSingleValueAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeMultiValuedAttributeEClass, NodeMultiValuedAttribute.class,
-				"NodeMultiValuedAttribute", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEAttribute(
-				getNodeMultiValuedAttribute_MultiValuedAttribute(),
-				ecorePackage.getEString(),
-				"multiValuedAttribute", null, 0, -1, NodeMultiValuedAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeMultiValuedAttributeEClass, NodeMultiValuedAttribute.class, "NodeMultiValuedAttribute", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getNodeMultiValuedAttribute_MultiValuedAttribute(), ecorePackage.getEString(), "multiValuedAttribute", null, 0, -1, NodeMultiValuedAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeSingleValueReferenceEClass, NodeSingleValueReference.class,
-				"NodeSingleValueReference", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEReference(
-				getNodeSingleValueReference_SingleValuedReference(),
-				this.getNode(),
-				null,
-				"singleValuedReference", null, 0, 1, NodeSingleValueReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeSingleValueReferenceEClass, NodeSingleValueReference.class, "NodeSingleValueReference", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEReference(getNodeSingleValueReference_SingleValuedReference(), this.getNode(), null, "singleValuedReference", null, 0, 1, NodeSingleValueReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeMultiValueReferenceEClass, NodeMultiValueReference.class,
-				"NodeMultiValueReference", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEReference(
-				getNodeMultiValueReference_MultiValuedReference(),
-				this.getNode(),
-				null,
-				"multiValuedReference", null, 0, -1, NodeMultiValueReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeMultiValueReferenceEClass, NodeMultiValueReference.class, "NodeMultiValueReference", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEReference(getNodeMultiValueReference_MultiValuedReference(), this.getNode(), null, "multiValuedReference", null, 0, -1, NodeMultiValueReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeOppositeRefOneToOneEClass, NodeOppositeRefOneToOne.class,
-				"NodeOppositeRefOneToOne", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEReference(
-				getNodeOppositeRefOneToOne_Source(),
-				this.getNodeOppositeRefOneToOne(),
-				this.getNodeOppositeRefOneToOne_Destination(),
-				"source", null, 0, 1, NodeOppositeRefOneToOne.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeOppositeRefOneToOne_Destination(),
-				this.getNodeOppositeRefOneToOne(),
-				this.getNodeOppositeRefOneToOne_Source(),
-				"destination", null, 0, 1, NodeOppositeRefOneToOne.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeOppositeRefOneToOneEClass, NodeOppositeRefOneToOne.class, "NodeOppositeRefOneToOne", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEReference(getNodeOppositeRefOneToOne_Source(), this.getNodeOppositeRefOneToOne(), this.getNodeOppositeRefOneToOne_Destination(), "source", null, 0, 1, NodeOppositeRefOneToOne.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeOppositeRefOneToOne_Destination(), this.getNodeOppositeRefOneToOne(), this.getNodeOppositeRefOneToOne_Source(), "destination", null, 0, 1, NodeOppositeRefOneToOne.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeOppositeRefOneToManyEClass, NodeOppositeRefOneToMany.class,
-				"NodeOppositeRefOneToMany", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEReference(
-				getNodeOppositeRefOneToMany_Source(),
-				this.getNodeOppositeRefOneToMany(),
-				this.getNodeOppositeRefOneToMany_Destination(),
-				"source", null, 0, 1, NodeOppositeRefOneToMany.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeOppositeRefOneToMany_Destination(),
-				this.getNodeOppositeRefOneToMany(),
-				this.getNodeOppositeRefOneToMany_Source(),
-				"destination", null, 0, -1, NodeOppositeRefOneToMany.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeOppositeRefOneToManyEClass, NodeOppositeRefOneToMany.class, "NodeOppositeRefOneToMany", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEReference(getNodeOppositeRefOneToMany_Source(), this.getNodeOppositeRefOneToMany(), this.getNodeOppositeRefOneToMany_Destination(), "source", null, 0, 1, NodeOppositeRefOneToMany.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeOppositeRefOneToMany_Destination(), this.getNodeOppositeRefOneToMany(), this.getNodeOppositeRefOneToMany_Source(), "destination", null, 0, -1, NodeOppositeRefOneToMany.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeOppositeRefManyToManyEClass, NodeOppositeRefManyToMany.class,
-				"NodeOppositeRefManyToMany", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEReference(
-				getNodeOppositeRefManyToMany_Source(),
-				this.getNodeOppositeRefManyToMany(),
-				this.getNodeOppositeRefManyToMany_Destination(),
-				"source", null, 0, -1, NodeOppositeRefManyToMany.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeOppositeRefManyToMany_Destination(),
-				this.getNodeOppositeRefManyToMany(),
-				this.getNodeOppositeRefManyToMany_Source(),
-				"destination", null, 0, -1, NodeOppositeRefManyToMany.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeOppositeRefManyToManyEClass, NodeOppositeRefManyToMany.class, "NodeOppositeRefManyToMany", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEReference(getNodeOppositeRefManyToMany_Source(), this.getNodeOppositeRefManyToMany(), this.getNodeOppositeRefManyToMany_Destination(), "source", null, 0, -1, NodeOppositeRefManyToMany.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeOppositeRefManyToMany_Destination(), this.getNodeOppositeRefManyToMany(), this.getNodeOppositeRefManyToMany_Source(), "destination", null, 0, -1, NodeOppositeRefManyToMany.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeFeatureMapContainmentEClass, NodeFeatureMapContainment.class,
-				"NodeFeatureMapContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEAttribute(
-				getNodeFeatureMapContainment_Map(),
-				ecorePackage.getEFeatureMapEntry(),
-				"map", null, 0, -1, NodeFeatureMapContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeFeatureMapContainment_FirstKey(),
-				this.getNode(),
-				null,
-				"firstKey", null, 0, -1, NodeFeatureMapContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeFeatureMapContainment_SecondKey(),
-				this.getNode(),
-				null,
-				"secondKey", null, 0, -1, NodeFeatureMapContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeFeatureMapContainmentEClass, NodeFeatureMapContainment.class, "NodeFeatureMapContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getNodeFeatureMapContainment_Map(), ecorePackage.getEFeatureMapEntry(), "map", null, 0, -1, NodeFeatureMapContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeFeatureMapContainment_FirstKey(), this.getNode(), null, "firstKey", null, 0, -1, NodeFeatureMapContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeFeatureMapContainment_SecondKey(), this.getNode(), null, "secondKey", null, 0, -1, NodeFeatureMapContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeFeatureMapNonContainmentEClass, NodeFeatureMapNonContainment.class,
-				"NodeFeatureMapNonContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEAttribute(
-				getNodeFeatureMapNonContainment_MapNC(),
-				ecorePackage.getEFeatureMapEntry(),
-				"mapNC", null, 0, -1, NodeFeatureMapNonContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeFeatureMapNonContainment_FirstKeyNC(),
-				this.getNode(),
-				null,
-				"firstKeyNC", null, 0, -1, NodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeFeatureMapNonContainment_SecondKeyNC(),
-				this.getNode(),
-				null,
-				"secondKeyNC", null, 0, -1, NodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeFeatureMapNonContainmentEClass, NodeFeatureMapNonContainment.class, "NodeFeatureMapNonContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getNodeFeatureMapNonContainment_MapNC(), ecorePackage.getEFeatureMapEntry(), "mapNC", null, 0, -1, NodeFeatureMapNonContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeFeatureMapNonContainment_FirstKeyNC(), this.getNode(), null, "firstKeyNC", null, 0, -1, NodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeFeatureMapNonContainment_SecondKeyNC(), this.getNode(), null, "secondKeyNC", null, 0, -1, NodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(nodeFeatureMapContainment2EClass, NodeFeatureMapContainment2.class,
-				"NodeFeatureMapContainment2", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEAttribute(
-				getNodeFeatureMapContainment2_Map2(),
-				ecorePackage.getEFeatureMapEntry(),
-				"map2", null, 0, -1, NodeFeatureMapContainment2.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeFeatureMapContainment2_Multiple(),
-				this.getNodeMultipleContainment(),
-				null,
-				"multiple", null, 0, -1, NodeFeatureMapContainment2.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getNodeFeatureMapContainment2_Single(),
-				this.getNodeSingleValueContainment(),
-				null,
-				"single", null, 0, -1, NodeFeatureMapContainment2.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeFeatureMapContainment2EClass, NodeFeatureMapContainment2.class, "NodeFeatureMapContainment2", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getNodeFeatureMapContainment2_Map2(), ecorePackage.getEFeatureMapEntry(), "map2", null, 0, -1, NodeFeatureMapContainment2.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeFeatureMapContainment2_Multiple(), this.getNodeMultipleContainment(), null, "multiple", null, 0, -1, NodeFeatureMapContainment2.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getNodeFeatureMapContainment2_Single(), this.getNodeSingleValueContainment(), null, "single", null, 0, -1, NodeFeatureMapContainment2.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
 
-		initEClass(
-				monoValuedNodeFeatureMapNonContainmentEClass,
-				MonoValuedNodeFeatureMapNonContainment.class,
-				"MonoValuedNodeFeatureMapNonContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
-		initEAttribute(
-				getMonoValuedNodeFeatureMapNonContainment_MonoMap(),
-				ecorePackage.getEFeatureMapEntry(),
-				"monoMap", null, 0, -1, MonoValuedNodeFeatureMapNonContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey(),
-				this.getNode(),
-				null,
-				"firstMonoKey", null, 0, 1, MonoValuedNodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
-		initEReference(
-				getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey(),
-				this.getNode(),
-				null,
-				"secondMonoKey", null, 0, 1, MonoValuedNodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEClass(nodeSingleValueEEnumAttributeEClass, NodeSingleValueEEnumAttribute.class, "NodeSingleValueEEnumAttribute", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getNodeSingleValueEEnumAttribute_SinglevalueEEnumAttribute(), this.getNodeEnum(), "singlevalueEEnumAttribute", null, 0, 1, NodeSingleValueEEnumAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+
+		initEClass(nodeMultiValueEEnumAttributeEClass, NodeMultiValueEEnumAttribute.class, "NodeMultiValueEEnumAttribute", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getNodeMultiValueEEnumAttribute_MultiValueEEnumAttribute(), this.getNodeEnum(), "multiValueEEnumAttribute", null, 0, -1, NodeMultiValueEEnumAttribute.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+
+		initEClass(monoValuedNodeFeatureMapNonContainmentEClass, MonoValuedNodeFeatureMapNonContainment.class, "MonoValuedNodeFeatureMapNonContainment", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS); //$NON-NLS-1$
+		initEAttribute(getMonoValuedNodeFeatureMapNonContainment_MonoMap(), ecorePackage.getEFeatureMapEntry(), "monoMap", null, 0, -1, MonoValuedNodeFeatureMapNonContainment.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey(), this.getNode(), null, "firstMonoKey", null, 0, 1, MonoValuedNodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+		initEReference(getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey(), this.getNode(), null, "secondMonoKey", null, 0, 1, MonoValuedNodeFeatureMapNonContainment.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED); //$NON-NLS-1$
+
+		// Initialize enums and add enum literals
+		initEEnum(nodeEnumEEnum, NodeEnum.class, "NodeEnum"); //$NON-NLS-1$
+		addEEnumLiteral(nodeEnumEEnum, NodeEnum.A);
+		addEEnumLiteral(nodeEnumEEnum, NodeEnum.B);
+		addEEnumLiteral(nodeEnumEEnum, NodeEnum.C);
 
 		// Create resource
 		createResource(eNS_URI);
@@ -888,40 +860,85 @@ public class NodesPackageImpl extends EPackageImpl implements NodesPackage {
 	}
 
 	/**
-	 * Initializes the annotations for <b>http:///org/eclipse/emf/ecore/util/ExtendedMetaData</b>. <!--
-	 * begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * Initializes the annotations for <b>http:///org/eclipse/emf/ecore/util/ExtendedMetaData</b>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	protected void createExtendedMetaDataAnnotations() {
 		String source = "http:///org/eclipse/emf/ecore/util/ExtendedMetaData"; //$NON-NLS-1$	
-		addAnnotation(getNodeFeatureMapContainment_Map(), source, new String[] {"kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getNodeFeatureMapContainment_FirstKey(), source, new String[] {"group", "#map" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getNodeFeatureMapContainment_SecondKey(), source, new String[] {"group", "#map" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getNodeFeatureMapNonContainment_MapNC(), source, new String[] {"kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getNodeFeatureMapNonContainment_FirstKeyNC(), source, new String[] {"group", "#mapNC" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getNodeFeatureMapNonContainment_SecondKeyNC(), source, new String[] {"group", "#mapNC" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getNodeFeatureMapContainment2_Map2(), source, new String[] {"kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getNodeFeatureMapContainment2_Multiple(), source, new String[] {"group", "#map2" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getNodeFeatureMapContainment2_Single(), source, new String[] {"group", "#map2" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getMonoValuedNodeFeatureMapNonContainment_MonoMap(), source, new String[] {
-				"kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey(), source, new String[] {
-				"group", "#monoMap" //$NON-NLS-1$ //$NON-NLS-2$
-		});
-		addAnnotation(getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey(), source, new String[] {
-				"group", "#monoMap" //$NON-NLS-1$ //$NON-NLS-2$
-		});
+		addAnnotation
+		  (getNodeFeatureMapContainment_Map(), 
+		   source, 
+		   new String[] {
+			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getNodeFeatureMapContainment_FirstKey(), 
+		   source, 
+		   new String[] {
+			 "group", "#map" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getNodeFeatureMapContainment_SecondKey(), 
+		   source, 
+		   new String[] {
+			 "group", "#map" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getNodeFeatureMapNonContainment_MapNC(), 
+		   source, 
+		   new String[] {
+			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getNodeFeatureMapNonContainment_FirstKeyNC(), 
+		   source, 
+		   new String[] {
+			 "group", "#mapNC" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getNodeFeatureMapNonContainment_SecondKeyNC(), 
+		   source, 
+		   new String[] {
+			 "group", "#mapNC" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getNodeFeatureMapContainment2_Map2(), 
+		   source, 
+		   new String[] {
+			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getNodeFeatureMapContainment2_Multiple(), 
+		   source, 
+		   new String[] {
+			 "group", "#map2" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getNodeFeatureMapContainment2_Single(), 
+		   source, 
+		   new String[] {
+			 "group", "#map2" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getMonoValuedNodeFeatureMapNonContainment_MonoMap(), 
+		   source, 
+		   new String[] {
+			 "kind", "group" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getMonoValuedNodeFeatureMapNonContainment_FirstMonoKey(), 
+		   source, 
+		   new String[] {
+			 "group", "#monoMap" //$NON-NLS-1$ //$NON-NLS-2$
+		   });	
+		addAnnotation
+		  (getMonoValuedNodeFeatureMapNonContainment_SecondMonoKey(), 
+		   source, 
+		   new String[] {
+			 "group", "#monoMap" //$NON-NLS-1$ //$NON-NLS-2$
+		   });
 	}
 
-} // NodesPackageImpl
+} //NodesPackageImpl

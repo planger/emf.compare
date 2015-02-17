@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Obeo and others.
+ * Copyright (c) 2012, 2015 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Alexandra Buzila - Bug 450360
  *******************************************************************************/
 package org.eclipse.emf.compare.match.eobject;
 
@@ -22,14 +23,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.emf.common.util.BasicDiagnostic;
+import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.Monitor;
 import org.eclipse.emf.compare.CompareFactory;
 import org.eclipse.emf.compare.Comparison;
+import org.eclipse.emf.compare.ComparisonCanceledException;
 import org.eclipse.emf.compare.Match;
+import org.eclipse.emf.compare.match.eobject.EObjectIndex.Side;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.util.InternalEList;
 import org.eclipse.emf.ecore.xmi.XMIResource;
 
 /**
@@ -55,6 +61,9 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 	 * </ol>
 	 */
 	private Function<EObject, String> idComputation = new DefaultIDFunction();
+
+	/** A diagnostic to be used for reporting on the matches. */
+	private BasicDiagnostic diagnostic;
 
 	/**
 	 * Creates an ID based matcher without any delegate.
@@ -103,34 +112,53 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 	public void createMatches(Comparison comparison, Iterator<? extends EObject> leftEObjects,
 			Iterator<? extends EObject> rightEObjects, Iterator<? extends EObject> originEObjects,
 			Monitor monitor) {
+		if (monitor.isCanceled()) {
+			throw new ComparisonCanceledException();
+		}
 		final List<EObject> leftEObjectsNoID = Lists.newArrayList();
 		final List<EObject> rightEObjectsNoID = Lists.newArrayList();
 		final List<EObject> originEObjectsNoID = Lists.newArrayList();
 
+		diagnostic = new BasicDiagnostic(Diagnostic.OK, "org.eclipse.emf.common", 0, //$NON-NLS-1$
+				org.eclipse.emf.common.CommonPlugin.INSTANCE.getString("_UI_OK_diagnostic_0"), null); //$NON-NLS-1$
+
+		// TODO Change API to pass the monitor to matchPerId()
 		final Set<Match> matches = matchPerId(leftEObjects, rightEObjects, originEObjects, leftEObjectsNoID,
 				rightEObjectsNoID, originEObjectsNoID);
 
+		addDiagnostic(comparison);
+
 		Iterables.addAll(comparison.getMatches(), matches);
 
-		if (delegate.isPresent()) {
-			doDelegation(comparison, leftEObjectsNoID, rightEObjectsNoID, originEObjectsNoID, monitor);
-		} else {
-			for (EObject eObject : leftEObjectsNoID) {
-				Match match = CompareFactory.eINSTANCE.createMatch();
-				match.setLeft(eObject);
-				matches.add(match);
+		if (!leftEObjectsNoID.isEmpty() || !rightEObjectsNoID.isEmpty() || !originEObjectsNoID.isEmpty()) {
+			if (delegate.isPresent()) {
+				doDelegation(comparison, leftEObjectsNoID, rightEObjectsNoID, originEObjectsNoID, monitor);
+			} else {
+				for (EObject eObject : leftEObjectsNoID) {
+					if (monitor.isCanceled()) {
+						throw new ComparisonCanceledException();
+					}
+					Match match = CompareFactory.eINSTANCE.createMatch();
+					match.setLeft(eObject);
+					matches.add(match);
+				}
+				for (EObject eObject : rightEObjectsNoID) {
+					if (monitor.isCanceled()) {
+						throw new ComparisonCanceledException();
+					}
+					Match match = CompareFactory.eINSTANCE.createMatch();
+					match.setRight(eObject);
+					matches.add(match);
+				}
+				for (EObject eObject : originEObjectsNoID) {
+					if (monitor.isCanceled()) {
+						throw new ComparisonCanceledException();
+					}
+					Match match = CompareFactory.eINSTANCE.createMatch();
+					match.setOrigin(eObject);
+					matches.add(match);
+				}
 			}
-			for (EObject eObject : rightEObjectsNoID) {
-				Match match = CompareFactory.eINSTANCE.createMatch();
-				match.setRight(eObject);
-				matches.add(match);
-			}
-			for (EObject eObject : originEObjectsNoID) {
-				Match match = CompareFactory.eINSTANCE.createMatch();
-				match.setOrigin(eObject);
-				matches.add(match);
-			}
-
 		}
 	}
 
@@ -199,11 +227,13 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 				final EObject parentEObject = left.eContainer();
 				final Match parent = leftEObjectsToMatch.get(parentEObject);
 				if (parent != null) {
-					parent.getSubmatches().add(match);
+					((InternalEList<Match>)parent.getSubmatches()).addUnique(match);
 				} else {
 					matches.add(match);
 				}
-
+				if (idToMatch.containsKey(identifier)) {
+					reportDuplicateID(Side.LEFT, identifier);
+				}
 				idToMatch.put(identifier, match);
 				leftEObjectsToMatch.put(left, match);
 			} else {
@@ -219,6 +249,9 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 			if (identifier != null) {
 				Match match = idToMatch.get(identifier);
 				if (match != null) {
+					if (match.getRight() != null) {
+						reportDuplicateID(Side.RIGHT, identifier);
+					}
 					match.setRight(right);
 
 					rightEObjectsToMatch.put(right, match);
@@ -231,7 +264,7 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 					final EObject parentEObject = right.eContainer();
 					final Match parent = rightEObjectsToMatch.get(parentEObject);
 					if (parent != null) {
-						parent.getSubmatches().add(match);
+						((InternalEList<Match>)parent.getSubmatches()).addUnique(match);
 					} else {
 						matches.add(match);
 					}
@@ -252,6 +285,9 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 			if (identifier != null) {
 				Match match = idToMatch.get(identifier);
 				if (match != null) {
+					if (match.getOrigin() != null) {
+						reportDuplicateID(Side.ORIGIN, identifier);
+					}
 					match.setOrigin(origin);
 
 					originEObjectsToMatch.put(origin, match);
@@ -264,7 +300,7 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 					final EObject parentEObject = origin.eContainer();
 					final Match parent = originEObjectsToMatch.get(parentEObject);
 					if (parent != null) {
-						parent.getSubmatches().add(match);
+						((InternalEList<Match>)parent.getSubmatches()).addUnique(match);
 					} else {
 						matches.add(match);
 					}
@@ -277,6 +313,34 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 			}
 		}
 		return matches;
+	}
+
+	/**
+	 * Adds a warning diagnostic to the comparison for the duplicate ID.
+	 * 
+	 * @param side
+	 *            the side where the duplicate ID was found
+	 * @param identifier
+	 *            the ID that has a duplicate
+	 */
+	private void reportDuplicateID(Side side, String identifier) {
+		diagnostic.add(new BasicDiagnostic(Diagnostic.WARNING, "org.eclipse.emf.compare", 0, //$NON-NLS-1$
+				"Duplicate ID found on the " + side.name() + " side. (value = '" + identifier + "')", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
+				null));
+	}
+
+	/**
+	 * Adds the diagnostic to the comparison.
+	 * 
+	 * @param comparison
+	 *            the comparison
+	 */
+	private void addDiagnostic(Comparison comparison) {
+		if (comparison.getDiagnostic() == null) {
+			comparison.setDiagnostic(diagnostic);
+		} else {
+			((BasicDiagnostic)comparison.getDiagnostic()).merge(diagnostic);
+		}
 	}
 
 	/**

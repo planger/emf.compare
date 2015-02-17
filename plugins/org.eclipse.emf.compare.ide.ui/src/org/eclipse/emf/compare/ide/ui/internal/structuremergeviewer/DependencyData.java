@@ -18,10 +18,9 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 
 import com.google.common.base.Function;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -31,11 +30,11 @@ import org.eclipse.emf.compare.internal.merge.MergeDependenciesUtil;
 import org.eclipse.emf.compare.internal.merge.MergeMode;
 import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.rcp.ui.internal.configuration.IEMFCompareConfiguration;
+import org.eclipse.emf.compare.rcp.ui.structuremergeviewer.groups.IDifferenceGroupProvider;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.edit.tree.TreeNode;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
 
 /**
  * @author <a href="mailto:mikael.barbero@obeo.fr">Mikael Barbero</a>
@@ -48,17 +47,10 @@ public class DependencyData {
 
 	private Set<Diff> rejectedDiffs;
 
-	private final WrappableTreeViewer treeViewer;
-
-	/** A map that links a diff with tree items. */
-	private Multimap<Diff, TreeItem> diffToItemsMappings;
-
-	public DependencyData(IEMFCompareConfiguration compareConfiguration, WrappableTreeViewer treeViewer) {
+	public DependencyData(IEMFCompareConfiguration compareConfiguration) {
 		this.compareConfiguration = compareConfiguration;
-		this.treeViewer = treeViewer;
 		requires = newHashSet();
 		rejectedDiffs = newHashSet();
-		diffToItemsMappings = HashMultimap.create();
 	}
 
 	/**
@@ -83,49 +75,6 @@ public class DependencyData {
 						!leftToRight));
 				rejectedDiffs.remove(diff);
 			}
-		}
-	}
-
-	public void updateTreeItemMappings() {
-		diffToItemsMappings = HashMultimap.create();
-
-		Tree tree = treeViewer.getTree();
-
-		TreeItem[] children = tree.getItems();
-		// item with non created children has a fake child item with null data.
-		if (children.length == 1 && children[0].getData() == null) {
-			treeViewer.createChildren(tree);
-		}
-
-		for (TreeItem item : tree.getItems()) {
-			associateTreeItem(item);
-		}
-	}
-
-	/**
-	 * Maps, if necessary, the given tree item and all his children with the given list of diffs.
-	 * 
-	 * @param item
-	 *            the given tree item.
-	 * @param diffs
-	 *            the given list of diffs.
-	 */
-	private void associateTreeItem(TreeItem item) {
-		Object itemData = item.getData();
-		EObject eObject = EMFCompareStructureMergeViewer.getDataOfTreeNodeOfAdapter(itemData);
-
-		if (eObject instanceof Diff) {
-			diffToItemsMappings.put((Diff)eObject, item);
-		}
-
-		TreeItem[] children = item.getItems();
-		// item with non created children has a fake child item with null data.
-		if (children.length > 0 && children[0].getData() == null) {
-			treeViewer.createChildren(item);
-		}
-
-		for (TreeItem child : item.getItems()) {
-			associateTreeItem(child);
 		}
 	}
 
@@ -160,7 +109,11 @@ public class DependencyData {
 		return rejectedDiffs;
 	}
 
-	public Collection<TreeItem> getTreeItems(Diff diff) {
-		return diffToItemsMappings.get(diff);
+	public Collection<TreeNode> getTreeNodes(Diff diff) {
+		final List<TreeNode> nodes = new ArrayList<TreeNode>();
+		IDifferenceGroupProvider groupProvider = compareConfiguration.getStructureMergeViewerGrouper()
+				.getProvider();
+		nodes.addAll(groupProvider.getTreeNodes(diff));
+		return nodes;
 	}
 }

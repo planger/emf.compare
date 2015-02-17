@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Obeo.
+ * Copyright (c) 2014, 2015 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,9 +17,10 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import data.models.Data;
-import data.models.LargeInputData;
 import data.models.NominalInputData;
+import data.models.NominalSplitInputData;
 import data.models.SmallInputData;
+import data.models.SmallSplitInputData;
 import fr.obeo.performance.api.PerformanceMonitor;
 
 /**
@@ -66,10 +67,10 @@ public class TestReq extends AbstractEMFComparePerformanceTest {
 		data.dispose();
 	}
 	
-//	@Test
-	public void c_reqUMLLarge() throws IOException {
-		PerformanceMonitor monitor = getPerformance().createMonitor("reqUMLLarge");
-		final Data data = new LargeInputData();
+	@Test
+	public void c_reqUMLSmallSplit() {
+		PerformanceMonitor monitor = getPerformance().createMonitor("reqUMLSmallSplit");
+		final Data data = new SmallSplitInputData();
 		data.match();
 		data.diff();
 		monitor.measure(warmup(), getStepsNumber(), new Runnable() {
@@ -79,5 +80,18 @@ public class TestReq extends AbstractEMFComparePerformanceTest {
 		});
 		data.dispose();
 	}
-
+	
+	@Test
+	public void d_reqUMLNominalSplit() {
+		PerformanceMonitor monitor = getPerformance().createMonitor("reqUMLNominalSplit");
+		final Data data = new NominalSplitInputData();
+		data.match();
+		data.diff();
+		monitor.measure(warmup(), getStepsNumber(), new Runnable() {
+			public void run() {
+				data.req();
+			}
+		});
+		data.dispose();
+	}
 }

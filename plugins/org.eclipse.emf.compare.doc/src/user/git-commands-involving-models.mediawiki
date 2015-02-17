@@ -9,7 +9,7 @@ EMF Compare provides additional git commands in order to compare and merge model
 
 Oomph [https://wiki.eclipse.org/Eclipse_Oomph_Installer Oomph] is a technology that provisions a set of plugins in an Eclipse IDE, clones Git repositories, binds Git repositories to this IDE, checks projects, sets workspace preferences... The configuration is model driven, with files called Oomph setup model files.
 
-== Add new Git commands in you system ==
+== Add new Git commands in your system ==
 
 The basics git commands don't allow to compare or merge EMF models in a logical way. Additional git commands must be added to your system. Each git command is a shell script describing its behaviour. So, to add a new git command, a new script has to be developed.
 The new scripts corresponding to the git commands are:
@@ -166,3 +166,335 @@ git logicalmergetool ''<setup>''
 </span>
 
 Run logical merge conflict resolution tools to resolve logical merge conflicts. In our case, it will launch an Eclipse platform with all the tools needed to resolve the conflict(s) induced by the merge. To do so, in the Eclipse environment, select the conflicting file(s) and open the contextual menu ''Team > Merge Tool''. Once the conflict has been resolved, add the file to the index (staged area). And then commit.
+
+== Git cherry-pick with models : git logicalcherry-pick ==
+
+The ''logicalcherry-pick'' command is the logical version of the git cherry pick command. To see a full description of the git cherry-pick command, please visit [http://git-scm.com/docs/git-cherry-pick].
+
+The command is specified as below:
+
+<span style="background:#dcdcdc">
+git logicalcherry-pick ''<setup>'' ''<commit>...''
+</span>
+
+Assume the following history exists and the current branch is ''master'':<code><pre>
+	  A---B---C topic
+	 /
+    D---E---F---G master,HEAD</pre></code>
+
+Then <code>git logicalcherry-pick mySetupModel.setup A B C</code> will pick A,B and C commits on top of the current HEAD (in the order defined by the command).<code><pre>
+	  A---B---C topic
+	 /
+    D---E---F---G---A---B---C master,HEAD</pre></code>
+    
+In all cases, ''<commit>''  can refers to a branch name or a commit id.
+
+=== Conflicts ===
+==== Resolve a conflict ====
+
+If cherry-picking a commit introduces a conflict, you will have to choose how to handle it. The first option is to resolve it by using:
+
+<span style="background:#dcdcdc">
+git logicalmergetool ''<setup>''
+</span>
+
+It opens an Eclipse platform in which you will be able to merge the differences using the merge tool (see [[#Git mergetool command with models : git logicalmergetool| Git mergetool command with models : git logicalmergetool]]). Once you have resolved all the conflicts, add the related file to the index and close your platform. To do so you can:
+* Use the contextual menu "Team > Add to Index" 
+
+:[[Image:../images/AddToIndexMenu.png]]
+
+* Drag and drop the files from the "Unstaged changes" area to the "Staged changes" area in the "Git Staging" view . 
+
+:[[Image:../images/StagedChanges.png]]
+
+By the way, you can notice in the top right corner there is an '''Abort''','''Skip Commit''' and '''Continue''' button. This simply means that there is a interactive rebase in progress. Indeed, in EGit, cherry-picking commits is equivalent to doing an interactive rebase with only pick actions. From now on, you can either choose to continue with in UI mode (that is to say using those buttons) or go back to command line tool by closing the Eclipse platform. This documentation only describes the mechanism of the command line tool.
+
+==== Continue ====
+Once you have resolved all the conflicts, please hit:
+
+<span style="background:#dcdcdc">
+git logicalcherry-pick ''<setup>'' ''--continue''
+</span>
+
+This command will continue an in going cherry-pick. Be careful you have to resolve all conflicts before using this command otherwise you might get the following message:
+<code><pre>fatal: Some files are in conflict:
+	project/file.ecore
+	project/file2.ecore
+hint: You must edit all merge conflicts and then
+hint: mark them as resolved using git add.</pre></code>
+
+There is a major diffference with the merge workflow. While cherry-picking you should not commit by yourself the files but only add them to the index. If you do, you might receive the following message when you use the ''--continue'' option.
+<code>
+<pre>
+No changes detected
+
+If there is nothing left to stage, chances are that something
+else already introduced the same changes; you might want to skip
+this patch using git logicalcherry-pick --quit
+</pre>
+</code>
+
+You can simply use the ''--quit'' option to continue your cherry-pick operation (see [[#Quit | Quit option]]).
+=== Abort ===
+
+A second solution while encountering a conflict is to abort the whole cherry-pick operation. To do so please hit:
+
+<span style="background:#dcdcdc">
+git logicalcherry-pick ''<setup>'' ''--abort''
+</span>
+
+It reverts all the commits already cherry-picked to retrieve the state before the cherry-pick command.
+
+=== Quit ===
+
+The last solution you have while facing a conflict would be to "skip" the current commit and go on with the remaining commits. To do so please hit:
+
+<span style="background:#dcdcdc">
+git logicalcherry-pick ''<setup>'' ''--quit'
+</span>
+
+The ''--quit'' option is quite different than the ''--quit'' option of the cherry-pick command in CGit. Instead of quitting an in going cherry-pick, it skips the current commit. Indeed, as mentionned above, in EGit a cherry-pick is replaced by a interactive rebase. This is why the ''--quit'' option is more like the ''--skip'' option of an interactive rebase.
+
+=== Others options available ===
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--git-dir ''<path>''<nowiki>]</nowiki>  </span>
+
+To specify the .git folder of a repository. This can be use to execute a command outside a git repository.
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--show-stack-trace<nowiki>]</nowiki> </span>
+
+Use this option to display java stack trace in console on error.
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--help (or -h)<nowiki>]</nowiki> </span>
+
+Dispay help for this command.
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--debug (or -d)<nowiki>]</nowiki> </span>
+
+Give the opportinity to connect a remote debugger to the logical cherry-pick application (using port 8123).
+
+== Git rebase with models : git logicalrebase ==
+
+The ''logicalrebase'' command is the logical version of the git rebase command. To see a full description of the git rebase command, please visit [http://git-scm.com/docs/git-rebase].
+
+The command is specified as below:
+
+<span style="background:#dcdcdc">
+git logicalrebase ''<nowiki>[</nowiki><upstream><nowiki>]</nowiki>'' ''<nowiki>[</nowiki><branch><nowiki>]</nowiki>''
+</span>
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki><upstream><nowiki>]</nowiki></span>
+
+Optional parameter used to reference the target commit on top of which the branch ''<nowiki>[</nowiki><branch><nowiki>]</nowiki>'' will be rebased. It can either be the name of a branch, the id of a commit or the name of tag. If only one parameter is given, the software will consider it to be the upstream parameter and set ''<nowiki>[</nowiki><branch><nowiki>]</nowiki>'' to ''HEAD''.
+
+Assume the following history exists and the current branch is ''topic'':<code><pre>
+	       A---B---C topic, HEAD
+	      /
+    D---E---F---G master</pre></code>
+
+Then <code>git rebase mySetupModel.setup master</code> will rebase the branch ''topic'' on top of ''master''.<code><pre>
+
+    D---E---F---G---A---B---C master, topic, HEAD</pre></code>
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki><branch><nowiki>]</nowiki></span>
+
+Optional parameter used to reference what is going to be rebased. It can either be the name of a branch, the id of a commit or the name of tag.
+
+For example, assume the following history exists and the current branch is ''master'':<code><pre>
+	       A---B---C topic
+	      /
+    D---E---F---G master, HEAD</pre></code>
+
+Then <code>git rebase mySetupModel.setup master topic</code> will checkout the branch ''topic'' and the rebase it on top of ''master''.<code><pre>
+
+    D---E---F---G---A---B---C master, topic, HEAD</pre></code>
+    
+Hint to remember the parameter order:
+* <code>git rebase mySetupModel.setup master</code> = Rebase on ''master'' the HEAD
+* <code>git rebase mySetupModel.setup master topic</code> = Rebase on ''master'' the branch ''topic''
+* <code>git rebase mySetupModel.setup master topic</code> equivalent to <code>git rebase mySetupModel.setup master</code> if HEAD is on same commit than topic.
+
+If you do not specify any branch, <code>git rebase mySetupModel.setup</code> will try to rebase the current branch on top of its remote tracking branch (see branch.<name>.remote and branch.<name>.merge options in [[http://git-scm.com/docs/git-config | git-config]]).
+
+For example, assume the following history exists. The current branch is ''master'' which tracks the remote branch ''origin/master'':<code><pre>
+           A---B---C origin/master
+         /
+    D---E---F---G master, HEAD</pre></code>
+
+Then <code>git rebase mySetupModel.setup</code> will rebase ''master'' on top of ''origin/master''.<code><pre>
+
+    D---E---A---B---C---F---G master, origin/master, HEAD</pre></code>
+
+=== Conflicts ===
+==== Resolve a conflict ====
+
+If rebasing a commit introduces a conflict, you will have to choose how to handle it. The first option is to resolve it by using:
+
+<span style="background:#dcdcdc">
+git logicalmergetool ''<setup>''
+</span>
+
+It opens an Eclipse platform in which you will be able to merge the differences using the merge tool (see [[#Git mergetool command with models : git logicalmergetool| Git mergetool command with models : git logicalmergetool]]). Once you have resolved all the conflicts, add the related file to the index and close your platform. To do so you can:
+* Use the contextual menu "Team > Add to Index" 
+
+:[[Image:../images/AddToIndexMenu.png]]
+
+* Drag and drop the files from the "Unstaged changes" area to the "Staged changes" area in the "Git Staging" view . 
+
+:[[Image:../images/StagedChanges.png]]
+
+By the way, you can notice in the top right corner there is an '''Abort''','''Skip Commit''' and '''Continue''' button. This simply means that there is a interactive rebase in progress. Indeed, in EGit, even a normal rebase operation is equivalent to doing an interactive rebase with only pick actions. From now on, you can either choose to continue with in UI mode (that is to say using those buttons) or go back to command line tool by closing the Eclipse platform. This documentation only describes the mechanism of the command line tool.
+
+==== Continue ====
+Once you have resolved all the conflicts, please hit:
+
+<span style="background:#dcdcdc">
+git logicalrebase ''<setup>'' ''--continue''
+</span>
+
+This command will continue an in going rebase. Be careful you have to resolve all conflicts before using this command otherwise you might get the following message:
+<code><pre>fatal: Some files are in conflict:
+	project/file.ecore
+	project/file2.ecore
+hint: You must edit all merge conflicts and then
+hint: mark them as resolved using git add.</pre></code>
+
+There is a major diffference with the merge workflow. While rebasing you should not commit by yourself the files but only add them to the index. If you do, you might receive the following message when you use the ''--continue'' option.
+<code>
+<pre>
+No changes - did you forget to use 'git add'?
+
+If there is nothing left to stage, chances are that something else
+already introduced the same changes; you might want to skip this patch.
+
+When you have resolved this problem, run "git logicalrebase --continue".
+If you prefer to skip this patch, run "git logicalrebase --skip" instead.
+To check out the original branch and stop rebasing, run "git logicalrebase --abort".
+</pre>
+</code>
+
+You can simply use the ''--skip'' option to continue your rebase operation (see [[#Skip | Skip option]]).
+=== Abort ===
+
+A second solution while encountering a conflict is to abort the whole rebase operation. To do so please hit:
+
+<span style="background:#dcdcdc">
+git rebase ''<setup>'' ''<nowiki></nowiki>--abort<nowiki></nowiki>''
+</span>
+
+=== Skip ===
+
+The last solution you have while facing a conflict, would be to "skip" the current commit and go on with the remaining commits to rebase. To do so please hit:
+
+<span style="background:#dcdcdc">
+git rebase ''<setup>'' ''<nowiki></nowiki>--quit<nowiki></nowiki>''
+</span>
+
+=== Others options available ===
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--git-dir ''<path>''<nowiki>]</nowiki>  </span>
+
+To specify the .git folder of a repository. This can be use to execute a command outside a git repository.
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--show-stack-trace<nowiki>]</nowiki> </span>
+
+Use this option to display java stack trace in console on error.
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--help (or -h)<nowiki>]</nowiki> </span>
+
+Dispay help for this command.
+
+== Git pull with models : git logicalpull ==
+
+The ''logicalpull'' command is the logical version of the git pull command. To see a full description of the git pull command, please visit [http://git-scm.com/docs/git-pull].
+
+The command is specified as below:
+
+<span style="background:#dcdcdc">
+git logicalpull ''<setup>''
+</span>
+
+Assume the following history exists and the current branch is master:
+
+<span style="background:#dcdcdc">
+         A---B---C      master on origin  
+        /                                 
+   D---E---F---G        master            
+       ^                                  
+       origin/master in your repository
+</span>
+
+Basically a ''git logicalpull'' is a ''git fetch'' followed by a ''git logicalmerge'' of the fetched branch.
+So ''git logicalpull mySetupModel.setup'' will fetch and replay the changes from the remote ''master'' branch since it diverged from the local ''master'' (i.e., ''E'') until its current commit (''C'') on top of ''master'', and record the result in a new commit along with the names of the two parent commits and a log message from the user describing the changes.
+
+<span style="background:#dcdcdc">
+         A---B---C       origin/master
+        /         \             
+   D---E---F---G---H     master 
+</span>
+
+If the command introduces conflicts, you will have to launch the [[#Git_mergetool_command_with_models_:_git_logicalmergetool | git logicalmergetool]] to resolve them.
+
+=== Others options available ===
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--show-stack-trace<nowiki>]</nowiki> </span>
+
+Use this option to display java stack trace in console on error.
+
+<span style="background:#dcdcdc"> <nowiki>[</nowiki>--help (or -h)<nowiki>]</nowiki> </span>
+
+Dispays help for this command.
+
+== Known bugs & limitations ==
+
+=== First use ===
+
+The first time the product is launched a stack trace is displayed in the console(see below). This error does not prevent the product to be used however it may be misleading for users. After the first launch this error disappears.
+
+<source lang="java">
+org.osgi.framework.BundleException: Could not resolve module: org.eclipse.equinox.ds [2]
+  Unresolved requirement: Import-Package: org.eclipse.equinox.internal.util.event; version="1.0.0"
+
+	at org.eclipse.osgi.container.Module.start(Module.java:434)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1582)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1562)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1533)
+	at org.eclipse.osgi.container.SystemModule.startWorker(SystemModule.java:242)
+	at org.eclipse.osgi.container.Module.doStart(Module.java:571)
+	at org.eclipse.osgi.container.Module.start(Module.java:439)
+	at org.eclipse.osgi.container.SystemModule.start(SystemModule.java:172)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle.start(EquinoxBundle.java:393)
+	at org.eclipse.osgi.internal.framework.EquinoxBundle.start(EquinoxBundle.java:412)
+	at org.eclipse.osgi.launch.Equinox.start(Equinox.java:115)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.startup(EclipseStarter.java:318)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:231)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:648)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:603)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1465)
+	at org.eclipse.equinox.launcher.Main.main(Main.java:1438)
+</source>
+
+A bug has been reported concerning this error: https://bugs.eclipse.org/bugs/show_bug.cgi?id=453432
+	
+=== Merge tool ===
+
+The merge tool doesn't work correctly on logical models. the problem is known and a patch has been made to fix it.
+Since the problem concerns EGit & EMF Compare, we need to stay EGit team to integrate the following contribution:
+*https://git.eclipse.org/r/#/c/36026/
+
+Once integrated, the following EMF Compare contributions will be integrated too:
+*https://git.eclipse.org/r/#/c/35541/
+*https://git.eclipse.org/r/#/c/36025/
+
+Then, the merge tool will work correctly.
+
+=== Cherry-pick empty commit ===
+
+If you try to cherry-pick a commit that introduces changes that already belong to the worktree, the operation may stop on a dirty state. For example, if you have cherry-picked a commit that belongs to the ancestor tree of HEAD. The characteristics of this dirty state are:
+# Wrong position of HEAD.
+# Some modified files in the working tree (use ''git status'' command).
+
+This problem comes from a EGit/JGit problem (see [[https://bugs.eclipse.org/bugs/show_bug.cgi?id=451159 | bug 451159]]).
+A workaround would be to find the previous position of HEAD using the ''git reflog'' command. Then, use the ''git reset --hard {$CommitId}''. This will reset HEAD to its previous position (''Use with caution'').

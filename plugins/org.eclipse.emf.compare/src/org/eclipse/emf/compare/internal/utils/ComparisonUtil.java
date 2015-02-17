@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Obeo.
+ * Copyright (c) 2012, 2014 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
+ *     Stefan Dirix - added #getExpectedSide
  *******************************************************************************/
 package org.eclipse.emf.compare.internal.utils;
 
@@ -45,8 +46,10 @@ import org.eclipse.emf.compare.MatchResource;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.compare.ResourceAttachmentChange;
 import org.eclipse.emf.compare.utils.ReferenceUtil;
+import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.util.ExtendedMetaData;
 import org.eclipse.emf.ecore.util.FeatureMap;
 
 /**
@@ -465,5 +468,55 @@ public final class ComparisonUtil {
 			comparison = null;
 		}
 		return comparison;
+	}
+
+	/**
+	 * Determines the side of the given {@link Match} which represents the model state the other side will be
+	 * changed to.
+	 * 
+	 * @param match
+	 *            The match whose side is returned.
+	 * @param source
+	 *            The source from which side the differences are determined.
+	 * @param mergeRightToLeft
+	 *            The direction of the merge.
+	 * @return The side of the given {@code match} which represents the desired model state in regards to the
+	 *         given {@link DifferenceSource} and {@code MergeDirection}.
+	 */
+	public static EObject getExpectedSide(Match match, DifferenceSource source, boolean mergeRightToLeft) {
+		final EObject result;
+
+		final boolean undoingLeft = mergeRightToLeft && source == DifferenceSource.LEFT;
+		final boolean undoingRight = !mergeRightToLeft && source == DifferenceSource.RIGHT;
+
+		final Comparison comparison = match.getComparison();
+
+		if (comparison.isThreeWay() && (undoingLeft || undoingRight) && match.getOrigin() != null) {
+			result = match.getOrigin();
+		} else if (mergeRightToLeft) {
+			result = match.getRight();
+		} else {
+			result = match.getLeft();
+		}
+
+		return result;
+	}
+
+	/**
+	 * Determines if the given {@link EObject} is contained directly within a FeatureMap by checking the
+	 * {@link EAnnotation}s.
+	 *
+	 * @param object
+	 *            The object to check.
+	 * @return {@true} if the {@code object} is directly contained within a FeatureMap.
+	 */
+	public static boolean isContainedInFeatureMap(EObject object) {
+		final EAnnotation annotation = object.eContainingFeature().getEAnnotation(
+				ExtendedMetaData.ANNOTATION_URI);
+		if (annotation != null) {
+			final String groupKind = ExtendedMetaData.FEATURE_KINDS[ExtendedMetaData.GROUP_FEATURE];
+			return annotation.getDetails().containsKey(groupKind);
+		}
+		return false;
 	}
 }

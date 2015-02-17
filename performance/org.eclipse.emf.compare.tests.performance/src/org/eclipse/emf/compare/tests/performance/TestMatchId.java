@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Obeo.
+ * Copyright (c) 2014, 2015 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,9 +16,10 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import data.models.Data;
-import data.models.LargeInputData;
 import data.models.NominalInputData;
+import data.models.NominalSplitInputData;
 import data.models.SmallInputData;
+import data.models.SmallSplitInputData;
 import fr.obeo.performance.api.PerformanceMonitor;
 
 /**
@@ -61,10 +62,22 @@ public class TestMatchId extends AbstractEMFComparePerformanceTest {
 		data.dispose();
 	}
 	
-//	@Test
-	public void c_matchIdUMLLarge() {
-		PerformanceMonitor monitor = getPerformance().createMonitor("matchIdUMLLarge");
-		final Data data = new LargeInputData();
+	@Test
+	public void c_matchIdUMLSmallSplit() {
+		PerformanceMonitor monitor = getPerformance().createMonitor("matchIdUMLSmallSplit");
+		final Data data = new SmallSplitInputData();
+		monitor.measure(warmup(), getStepsNumber(), new Runnable() {
+			public void run() {
+				data.match(UseIdentifiers.ONLY);
+			}
+		});
+		data.dispose();
+	}
+	
+	@Test
+	public void d_matchIdUMLNominalSplit() {
+		PerformanceMonitor monitor = getPerformance().createMonitor("matchIdUMLNominalSplit");
+		final Data data = new NominalSplitInputData();
 		monitor.measure(warmup(), getStepsNumber(), new Runnable() {
 			public void run() {
 				data.match(UseIdentifiers.ONLY);

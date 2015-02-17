@@ -10,10 +10,13 @@
  *******************************************************************************/
 package org.eclipse.emf.compare.tests.merge;
 
+import static com.google.common.base.Predicates.and;
 import static com.google.common.base.Predicates.not;
+import static org.eclipse.emf.compare.utils.EMFComparePredicates.addedToAttribute;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.fromSide;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.hasState;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.ofKind;
+import static org.eclipse.emf.compare.utils.EMFComparePredicates.referenceValueMatch;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -21,9 +24,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,6 +44,8 @@ import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.compare.tests.merge.data.IndividualDiffInputData;
+import org.eclipse.emf.compare.tests.nodes.Node;
+import org.eclipse.emf.compare.tests.nodes.NodeEnum;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -54,6 +61,270 @@ public class ConflictMergeTest {
 	private IndividualDiffInputData input = new IndividualDiffInputData();
 
 	private final IMerger.Registry mergerRegistry = IMerger.RegistryImpl.createStandaloneInstance();
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testLeftAddRightAdd_LtR_1() throws IOException {
+		// Conflict between C[containmentRef1 add] from left side and C[containmentRef1 add] from right side
+
+		final Resource left = input.getLeftAddRightAddLeftConflictScope();
+		final Resource right = input.getLeftAddRightAddRightConflictScope();
+		final Resource origin = input.getLeftAddRightAddOriginConflictScope();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		List<Diff> differences = comparison.getDifferences();
+		assertEquals(6, differences.size());
+
+		final String featureName = "containmentRef1";
+
+		final Diff diffNodeCLeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C", true)));
+		final Diff diffNodeCRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C", true)));
+		final Diff diffNodeDLeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C.D", true)));
+		final Diff diffNodeDRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C.D", true)));
+		final Diff diffNodeELeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C.E", true)));
+		final Diff diffNodeFRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C.F", true)));
+
+		// Merge C[containmentRef1 add] from left side from left to right : C[containmentRef1 add] from right
+		// side will be merge from left to right too.
+		mergerRegistry.getHighestRankingMerger(diffNodeCLeft).copyLeftToRight(diffNodeCLeft,
+				new BasicMonitor());
+
+		final EObject rightNodeC = getNodeNamed(right, "C");
+		assertNotNull(rightNodeC);
+		final EObject rightNodeA = getNodeNamed(right, "A");
+		assertNotNull(rightNodeA);
+		final EObject rightNodeB = getNodeNamed(right, "B");
+		assertNotNull(rightNodeB);
+		final EObject rightNodeD = getNodeNamed(right, "D");
+		assertNull(rightNodeD);
+		final EObject rightNodeF = getNodeNamed(right, "F");
+		assertNull(rightNodeF);
+		final EStructuralFeature feature = rightNodeA.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+		final EList<Node> containmentRef1s = ((Node)rightNodeA).getContainmentRef1();
+		assertTrue(containmentRef1s.contains(rightNodeC));
+		final EList<Node> bContainmentRef1s = ((Node)rightNodeB).getContainmentRef1();
+		assertFalse(bContainmentRef1s.contains(rightNodeC));
+
+		assertEquals(DifferenceState.MERGED, diffNodeCLeft.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeCRight.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeDLeft.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeDRight.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeELeft.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeFRight.getState());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testLeftAddRightAdd_LtR_2() throws IOException {
+		// Conflict between C[containmentRef1 add] from left side and C[containmentRef1 add] from right side
+
+		final Resource left = input.getLeftAddRightAddLeftConflictScope();
+		final Resource right = input.getLeftAddRightAddRightConflictScope();
+		final Resource origin = input.getLeftAddRightAddOriginConflictScope();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		List<Diff> differences = comparison.getDifferences();
+		assertEquals(6, differences.size());
+
+		final String featureName = "containmentRef1";
+
+		final Diff diffNodeCLeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C", true)));
+		final Diff diffNodeCRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C", true)));
+		final Diff diffNodeDLeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C.D", true)));
+		final Diff diffNodeDRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C.D", true)));
+		final Diff diffNodeELeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C.E", true)));
+		final Diff diffNodeFRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C.F", true)));
+
+		// Merge C[containmentRef1 add] from right side from left to right : C[containmentRef1 add] from left
+		// side will not be merge
+		mergerRegistry.getHighestRankingMerger(diffNodeCRight).copyLeftToRight(diffNodeCRight,
+				new BasicMonitor());
+
+		final EObject rightNodeC = getNodeNamed(right, "C");
+		assertNull(rightNodeC);
+		final EObject rightNodeA = getNodeNamed(right, "A");
+		assertNotNull(rightNodeA);
+		final EObject rightNodeB = getNodeNamed(right, "B");
+		assertNotNull(rightNodeB);
+		final EObject rightNodeD = getNodeNamed(right, "D");
+		assertNull(rightNodeD);
+		final EObject rightNodeF = getNodeNamed(right, "F");
+		assertNull(rightNodeF);
+		final EStructuralFeature feature = rightNodeA.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+		final EList<Node> aContainmentRef1s = ((Node)rightNodeA).getContainmentRef1();
+		assertFalse(aContainmentRef1s.contains(rightNodeC));
+		final EList<Node> bContainmentRef1s = ((Node)rightNodeB).getContainmentRef1();
+		assertFalse(bContainmentRef1s.contains(rightNodeC));
+
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeCLeft.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeCRight.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeDLeft.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeDRight.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeELeft.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeFRight.getState());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testLeftAddRightAdd_RtL_1() throws IOException {
+		// Conflict between C[containmentRef1 add] from left side and C[containmentRef1 add] from right side
+
+		final Resource left = input.getLeftAddRightAddLeftConflictScope();
+		final Resource right = input.getLeftAddRightAddRightConflictScope();
+		final Resource origin = input.getLeftAddRightAddOriginConflictScope();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		List<Diff> differences = comparison.getDifferences();
+		assertEquals(6, differences.size());
+
+		final String featureName = "containmentRef1";
+
+		final Diff diffNodeCLeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C", true)));
+		final Diff diffNodeCRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C", true)));
+		final Diff diffNodeDLeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C.D", true)));
+		final Diff diffNodeDRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C.D", true)));
+		final Diff diffNodeELeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C.E", true)));
+		final Diff diffNodeFRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C.F", true)));
+
+		// Merge C[containmentRef1 add] from left side from right to left : C[containmentRef1 add] from right
+		// side will not be merge.
+		mergerRegistry.getHighestRankingMerger(diffNodeCLeft).copyRightToLeft(diffNodeCLeft,
+				new BasicMonitor());
+
+		final EObject leftNodeC = getNodeNamed(left, "C");
+		assertNull(leftNodeC);
+		final EObject leftNodeA = getNodeNamed(left, "A");
+		assertNotNull(leftNodeA);
+		final EObject leftNodeB = getNodeNamed(left, "B");
+		assertNotNull(leftNodeB);
+		final EObject leftNodeD = getNodeNamed(left, "D");
+		assertNull(leftNodeD);
+		final EObject leftNodeF = getNodeNamed(left, "F");
+		assertNull(leftNodeF);
+		final EStructuralFeature feature = leftNodeA.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+		final EList<Node> containmentRef1s = ((Node)leftNodeA).getContainmentRef1();
+		assertFalse(containmentRef1s.contains(leftNodeC));
+		final EList<Node> bContainmentRef1s = ((Node)leftNodeB).getContainmentRef1();
+		assertFalse(bContainmentRef1s.contains(leftNodeC));
+
+		assertEquals(DifferenceState.MERGED, diffNodeCLeft.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeCRight.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeDLeft.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeDRight.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeELeft.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeFRight.getState());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testLeftAddRightAdd_RtL_2() throws IOException {
+		// Conflict between C[containmentRef1 add] from left side and C[containmentRef1 add] from right side
+
+		final Resource left = input.getLeftAddRightAddLeftConflictScope();
+		final Resource right = input.getLeftAddRightAddRightConflictScope();
+		final Resource origin = input.getLeftAddRightAddOriginConflictScope();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		List<Diff> differences = comparison.getDifferences();
+		assertEquals(6, differences.size());
+
+		final String featureName = "containmentRef1";
+
+		final Diff diffNodeCLeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C", true)));
+		final Diff diffNodeCRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C", true)));
+		final Diff diffNodeDLeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C.D", true)));
+		final Diff diffNodeDRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C.D", true)));
+		final Diff diffNodeELeft = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.LEFT), ofKind(DifferenceKind.ADD), referenceValueMatch(featureName,
+						"root.A.C.E", true)));
+		final Diff diffNodeFRight = Iterators.find(differences.iterator(), and(
+				fromSide(DifferenceSource.RIGHT), ofKind(DifferenceKind.ADD), referenceValueMatch(
+						featureName, "root.B.C.F", true)));
+
+		// Merge C[containmentRef1 add] from right side from right to left : C[containmentRef1 add] from left
+		// side will be merge from right to left too.
+		mergerRegistry.getHighestRankingMerger(diffNodeCRight).copyRightToLeft(diffNodeCRight,
+				new BasicMonitor());
+
+		final EObject leftNodeC = getNodeNamed(left, "C");
+		assertNotNull(leftNodeC);
+		final EObject leftNodeA = getNodeNamed(left, "A");
+		assertNotNull(leftNodeA);
+		final EObject leftNodeB = getNodeNamed(left, "B");
+		assertNotNull(leftNodeB);
+		final EObject leftNodeD = getNodeNamed(left, "D");
+		assertNull(leftNodeD);
+		final EObject leftNodeF = getNodeNamed(left, "F");
+		assertNull(leftNodeF);
+		final EStructuralFeature feature = leftNodeA.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+		final EList<Node> containmentRef1s = ((Node)leftNodeA).getContainmentRef1();
+		assertFalse(containmentRef1s.contains(leftNodeC));
+		final EList<Node> bContainmentRef1s = ((Node)leftNodeB).getContainmentRef1();
+		assertTrue(bContainmentRef1s.contains(leftNodeC));
+
+		assertEquals(DifferenceState.MERGED, diffNodeCLeft.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeCRight.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeDLeft.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeDRight.getState());
+		assertEquals(DifferenceState.MERGED, diffNodeELeft.getState());
+		assertEquals(DifferenceState.UNRESOLVED, diffNodeFRight.getState());
+	}
 
 	@Test
 	public void testLeftAddRightDelete_LtR_1() throws IOException {
@@ -124,6 +395,65 @@ public class ConflictMergeTest {
 				assertTrue(currentDiff.getState() == DifferenceState.UNRESOLVED);
 			}
 		}
+	}
+
+	@Test
+	public void testLeftAddRightDelete_LtR_EEnum() throws IOException {
+		final Resource left = input.getLeftAddRightDeleteLeftEEnumConflictScope();
+		final Resource right = input.getLeftAddRightDeleteRightEEnumConflictScope();
+		final Resource origin = input.getLeftAddRightDeleteOriginEEnumConflictScope();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		List<Diff> differences = comparison.getDifferences();
+		assertEquals(3, differences.size());
+
+		final String featureName = "multiValueEEnumAttribute";
+		final Diff diffA = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root.origin", featureName, NodeEnum.A)));
+		final Diff diffB = Iterators.find(differences.iterator(), and(fromSide(DifferenceSource.LEFT),
+				addedToAttribute("root.origin", featureName, NodeEnum.B)));
+
+		mergerRegistry.getHighestRankingMerger(diffA).copyLeftToRight(diffA, new BasicMonitor());
+
+		final EObject rightElement = getNodeNamed(right, "origin");
+		assertNotNull(rightElement);
+		final EStructuralFeature feature = rightElement.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+		Object featureValue = rightElement.eGet(feature);
+		assertTrue(featureValue instanceof Collection<?>);
+		assertTrue(((Collection<?>)featureValue).containsAll(Lists.newArrayList(NodeEnum.A)));
+
+		mergerRegistry.getHighestRankingMerger(diffB).copyLeftToRight(diffB, new BasicMonitor());
+
+		featureValue = rightElement.eGet(feature);
+		assertTrue(featureValue instanceof Collection<?>);
+		assertTrue(((Collection<?>)featureValue).containsAll(Lists.newArrayList(NodeEnum.A, NodeEnum.B)));
+
+		assertFalse(Iterators.any(differences.iterator(), not(hasState(DifferenceState.MERGED))));
+	}
+
+	@Test
+	public void testLeftAddRightDelete_RtL_EEnum() throws IOException {
+		final Resource left = input.getLeftAddRightDeleteLeftEEnumConflictScope();
+		final Resource right = input.getLeftAddRightDeleteRightEEnumConflictScope();
+		final Resource origin = input.getLeftAddRightDeleteOriginEEnumConflictScope();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		List<Diff> differences = comparison.getDifferences();
+		assertEquals(3, differences.size());
+
+		final Diff diffDelete = Iterators.find(differences.iterator(), fromSide(DifferenceSource.RIGHT));
+
+		mergerRegistry.getHighestRankingMerger(diffDelete).copyRightToLeft(diffDelete, new BasicMonitor());
+
+		final EObject rightElement = getNodeNamed(left, "origin");
+		assertNull(rightElement);
+
+		assertFalse(Iterators.any(differences.iterator(), not(hasState(DifferenceState.MERGED))));
 	}
 
 	@Test
@@ -1261,6 +1591,74 @@ public class ConflictMergeTest {
 		final EStructuralFeature eStructuralFeatureNameA = ((EClass)leftEClassA)
 				.getEStructuralFeature("name");
 		assertNull(eStructuralFeatureNameA);
+
+		assertFalse(Iterators.any(differences.iterator(), not(hasState(DifferenceState.MERGED))));
+	}
+
+	@Test
+	public void testLeftSetRightSetEEnum_LtR() throws IOException {
+		// Conflict between two single value attribute with an eenum type
+		final Resource left = input.getLeftSetRightSetLeftEEnumConflictScope();
+		final Resource right = input.getLeftSetRightSetRightEEnumConflictScope();
+		final Resource origin = input.getLeftSetRightSetOriginEEnumConflictScope();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		List<Diff> differences = comparison.getDifferences();
+		assertEquals(2, differences.size());
+
+		final Diff diff = Iterators.find(differences.iterator(), fromSide(DifferenceSource.LEFT));
+
+		// Merge the left diff should also merge the right diff
+		mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+
+		final String featureName = "singlevalueEEnumAttribute";
+		final EObject rightNode = getNodeNamed(right, "root");
+		assertNotNull(rightNode);
+		final EStructuralFeature feature = rightNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+		final Object rightValue = rightNode.eGet(feature);
+		assertEquals(NodeEnum.B, rightValue);
+
+		final EObject leftNode = getNodeNamed(left, "root");
+		assertNotNull(rightNode);
+		final Object leftValue = leftNode.eGet(feature);
+		assertEquals(NodeEnum.B, leftValue);
+
+		assertFalse(Iterators.any(differences.iterator(), not(hasState(DifferenceState.MERGED))));
+	}
+
+	@Test
+	public void testLeftSetRightSetEEnum_RtL() throws IOException {
+		// Conflict between two single value attribute with an eenum type
+		final Resource left = input.getLeftSetRightSetLeftEEnumConflictScope();
+		final Resource right = input.getLeftSetRightSetRightEEnumConflictScope();
+		final Resource origin = input.getLeftSetRightSetOriginEEnumConflictScope();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		List<Diff> differences = comparison.getDifferences();
+		assertEquals(2, differences.size());
+
+		final Diff diff = Iterators.find(differences.iterator(), fromSide(DifferenceSource.RIGHT));
+
+		// Merge the left diff should also merge the right diff
+		mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+
+		final String featureName = "singlevalueEEnumAttribute";
+		final EObject rightNode = getNodeNamed(right, "root");
+		assertNotNull(rightNode);
+		final EStructuralFeature feature = rightNode.eClass().getEStructuralFeature(featureName);
+		assertNotNull(feature);
+		final Object rightValue = rightNode.eGet(feature);
+		assertEquals(NodeEnum.C, rightValue);
+
+		final EObject leftNode = getNodeNamed(left, "root");
+		assertNotNull(rightNode);
+		final Object leftValue = leftNode.eGet(feature);
+		assertEquals(NodeEnum.C, leftValue);
 
 		assertFalse(Iterators.any(differences.iterator(), not(hasState(DifferenceState.MERGED))));
 	}

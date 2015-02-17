@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.emf.compare.ide.ui.internal.structuremergeviewer;
 
+import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Iterables.transform;
 
@@ -17,10 +18,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -224,12 +225,6 @@ public class EMFCompareStructureMergeViewerContentProvider extends AdapterFactor
 	private Object[] pending;
 
 	/**
-	 * Holds listeners that need to be run the next time the content provider is ready. If this attribute
-	 * holds null then all listeners needs to be run.
-	 */
-	private List<FetchListener> listenerLeftToRun = null;
-
-	/**
 	 * Constructs the content provider with the appropriate adapter factory.
 	 * 
 	 * @param adapterFactory
@@ -255,7 +250,18 @@ public class EMFCompareStructureMergeViewerContentProvider extends AdapterFactor
 	public Object getParent(Object element) {
 		final Object ret;
 		if (element instanceof CompareInputAdapter) {
-			ret = super.getParent(((Adapter)element).getTarget());
+			Object parentNode = super.getParent(((Adapter)element).getTarget());
+			if (parentNode instanceof TreeNode) {
+				final Optional<Adapter> cia = Iterators.tryFind(
+						((TreeNode)parentNode).eAdapters().iterator(), instanceOf(CompareInputAdapter.class));
+				if (cia.isPresent()) {
+					ret = cia.get();
+				} else {
+					ret = parentNode;
+				}
+			} else {
+				ret = parentNode;
+			}
 		} else if (element instanceof ICompareInput) {
 			ret = null;
 		} else {
@@ -560,21 +566,11 @@ public class EMFCompareStructureMergeViewerContentProvider extends AdapterFactor
 				if (isFetchingGroup) {
 					isFetchingGroup = false;
 					pending = null;
-					final Iterator<FetchListener> listenersIterator;
-					// There is some listeners left to run (meaning that on the last call of this method all
-					// listeners were not run) then finish to run the listener.
-					if (listenerLeftToRun != null) {
-						listenersIterator = listenerLeftToRun.iterator();
-					} else {
-						listenersIterator = listeners.iterator();
-					}
-					while (listenersIterator.hasNext()) {
-						FetchListener listener = listenersIterator.next();
+					for (FetchListener listener : listeners) {
 						listener.doneFetching();
 						// If the listener starts to fetch again then stop notifying listeners and wait for
-						// the content provider to be ready before continuing.
+						// the content provider to be ready before re-starting.
 						if (isFetchingGroup) {
-							listenerLeftToRun = Lists.newArrayList(listenersIterator);
 							return;
 						}
 					}
@@ -587,8 +583,6 @@ public class EMFCompareStructureMergeViewerContentProvider extends AdapterFactor
 						// If the callback has started to fetch again the stop running callbacks and wait for
 						// the content provider to be ready.
 						if (isFetchingGroup) {
-							// Means that all listeners have already been run
-							listenerLeftToRun = Collections.emptyList();
 							List<CallbackHolder> remainingCallBack = Lists.newArrayList(callbacksIterator);
 							callbacks = new CopyOnWriteArrayList<EMFCompareStructureMergeViewerContentProvider.CallbackHolder>(
 									remainingCallBack);
@@ -596,8 +590,6 @@ public class EMFCompareStructureMergeViewerContentProvider extends AdapterFactor
 						}
 					}
 
-					// Back to normal state all listener needs to be run.
-					listenerLeftToRun = null;
 					callbacks.clear();
 				}
 			} finally {

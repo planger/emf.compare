@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Obeo.
+ * Copyright (c) 2012, 2015 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,12 +48,7 @@ import org.eclipse.emf.edit.provider.ReflectiveItemProviderAdapterFactory;
 import org.eclipse.emf.edit.provider.resource.ResourceItemProviderAdapterFactory;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryContentProvider;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider;
-import org.eclipse.jface.action.ActionContributionItem;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IContributionItem;
-import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.viewers.IContentProvider;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
@@ -245,7 +240,7 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 			}
 		};
 		mergeTreeViewer.setContentProvider(contentProvider);
-		ILabelProvider labelProvider = new AdapterFactoryLabelProvider(fAdapterFactory) {
+		AdapterFactoryLabelProvider labelProvider = new AdapterFactoryLabelProvider(fAdapterFactory) {
 			/**
 			 * {@inheritDoc}
 			 * 
@@ -299,6 +294,11 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 				return super.getImage(object);
 			}
 		};
+
+		// FIXME: a better solution will be that MergeViewerItem have ItemProviders (on the same principle
+		// than TreeNodes).
+		labelProvider.setFireLabelUpdateNotifications(true);
+
 		mergeTreeViewer.setLabelProvider(labelProvider);
 
 		mergeTreeViewer.getStructuredViewer().getTree().addListener(SWT.Collapse,
@@ -365,28 +365,6 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 						g.setForeground(strokeColor);
 						drawCenterLine(g, leftClientArea, rightClientArea, leftItem, rightItem);
 					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.eclipse.emf.compare.ide.ui.internal.contentmergeviewer.EMFCompareContentMergeViewer#createToolItems(org.eclipse.jface.action.ToolBarManager)
-	 */
-	@Override
-	protected void createToolItems(ToolBarManager toolBarManager) {
-		super.createToolItems(toolBarManager);
-		IContributionItem[] items = toolBarManager.getItems();
-		for (IContributionItem iContributionItem : items) {
-			if (iContributionItem instanceof ActionContributionItem) {
-				IAction action = ((ActionContributionItem)iContributionItem).getAction();
-				String id = action.getActionDefinitionId();
-				if ("org.eclipse.compare.copyAllLeftToRight".equals(id)) { //$NON-NLS-1$
-					toolBarManager.remove(iContributionItem);
-				} else if ("org.eclipse.compare.copyAllRightToLeft".equals(id)) { //$NON-NLS-1$
-					toolBarManager.remove(iContributionItem);
 				}
 			}
 		}
@@ -539,7 +517,7 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 									eContainer = ancestor.eContainer();
 								}
 								Match match2 = comparison.getMatch(eContainer);
-								if (match2.getLeft() != parent) {
+								if (match2 != null && match2.getLeft() != parent) {
 									IMergeViewerItem.Container container = new MergeViewerItem.Container(
 											getCompareConfiguration().getComparison(), null, match2,
 											MergeViewerSide.RIGHT, fAdapterFactory);
@@ -559,7 +537,7 @@ public class TreeContentMergeViewer extends EMFCompareContentMergeViewer {
 									eContainer = ancestor.eContainer();
 								}
 								Match match2 = comparison.getMatch(eContainer);
-								if (match2.getRight() != parent) {
+								if (match2 != null && match2.getRight() != parent) {
 									IMergeViewerItem.Container container = new MergeViewerItem.Container(
 											getCompareConfiguration().getComparison(), null, match2,
 											MergeViewerSide.LEFT, fAdapterFactory);

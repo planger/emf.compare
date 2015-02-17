@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011, 2014 Obeo.
+ * Copyright (c) 2011, 2012 Obeo.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -152,6 +152,24 @@ public interface NodesFactory extends EFactory {
 	 * @generated
 	 */
 	NodeFeatureMapContainment2 createNodeFeatureMapContainment2();
+
+	/**
+	 * Returns a new object of class '<em>Node Single Value EEnum Attribute</em>'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return a new object of class '<em>Node Single Value EEnum Attribute</em>'.
+	 * @generated
+	 */
+	NodeSingleValueEEnumAttribute createNodeSingleValueEEnumAttribute();
+
+	/**
+	 * Returns a new object of class '<em>Node Multi Value EEnum Attribute</em>'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return a new object of class '<em>Node Multi Value EEnum Attribute</em>'.
+	 * @generated
+	 */
+	NodeMultiValueEEnumAttribute createNodeMultiValueEEnumAttribute();
 
 	/**
 	 * Returns a new object of class '<em>Mono Valued Node Feature Map Non Containment</em>'.
