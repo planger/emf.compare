@@ -34,6 +34,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xmi.XMIResource;
 import org.eclipse.emf.emfstore.fuzzy.emf.ESEMFDataProvider;
 import org.eclipse.emf.emfstore.fuzzy.emf.ESMutateUtil;
 import org.eclipse.emf.emfstore.fuzzy.emf.junit.Annotations.Data;
@@ -201,15 +202,22 @@ public class TwoWayFuzzyTest {
 		if (success > 0) {
 			final Notifier rightOriginal = getRightOriginalNotifier();
 			final Notifier leftOriginal = getLeftOriginalNotifier();
+			final Notifier merged = data.direction == MergeMode.LEFT_TO_RIGHT ? data.right : data.left;
 			TwoWayMergeData originalData = new TwoWayMergeData(leftOriginal, rightOriginal, data.direction);
-			reportFailure(originalData, differences);
+			reportFailure(originalData, merged, differences);
 		}
 		Assert.assertEquals("We still have differences after merging all of them.", 0, success);
 	}
 
-	protected void reportFailure(TwoWayMergeData data, EList<Diff> differences) {
+	protected void reportFailure(TwoWayMergeData data, Notifier merged, EList<Diff> differences) {
 		mutateUtil.saveEObject((EObject)data.left, getDebugFileName("left", data.direction), true);
 		mutateUtil.saveEObject((EObject)data.right, getDebugFileName("right", data.direction), true);
+		if(merged instanceof XMIResource){
+			mutateUtil.saveEObject(((XMIResource)merged).getContents().get(0), getDebugFileName("merged", data.direction), true);
+		}else if (merged instanceof EObject){
+			mutateUtil.saveEObject((EObject)merged, getDebugFileName("merged", data.direction), true);
+		}
+
 	}
 
 	private String getDebugFileName(String fileName, MergeMode direction) {

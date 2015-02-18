@@ -21,6 +21,7 @@ import java.util.Set;
 import org.eclipse.emf.common.notify.Notifier;
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.EMFCompare;
@@ -31,6 +32,8 @@ import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.emfstore.fuzzy.emf.ESEMFDataProvider;
 import org.eclipse.emf.emfstore.fuzzy.emf.ESMutateUtil;
@@ -89,11 +92,14 @@ public class ThreeWayFuzzyTest {
 	protected EObject leftRootObject;
 
 	protected EObject rightRootObject;
+	
+	protected ResourceSet resourceSet;
 
 	protected boolean mutateLeft;
 
 	@Before
 	public void prepareTwoVersions() {
+		resourceSet = new ResourceSetImpl();
 		createOriginRootObject();
 		mutateLeft = new Random(mutateUtil.getSeed()).nextBoolean();
 		if (mutateLeft) {
@@ -121,17 +127,24 @@ public class ThreeWayFuzzyTest {
 		removeAllDuplicateCrossReferences(generatedRootObject);
 		saveRightRootObject(generatedRootObject);
 	}
+	
+	private void addToSet(EObject object, String uri){
+		resourceSet.createResource(URI.createURI(uri)).getContents().add(object);
+	}
 
 	private void saveOriginRootObject(EObject eObject) {
 		this.originRootObject = EcoreUtil.copy(eObject);
+		addToSet(this.originRootObject, "originRoot");
 	}
 
 	private void saveLeftRootObject(EObject eObject) {
 		this.leftRootObject = EcoreUtil.copy(eObject);
+		addToSet(this.leftRootObject, "leftRoot");
 	}
 
 	private void saveRightRootObject(EObject eObject) {
 		this.rightRootObject = EcoreUtil.copy(eObject);
+		addToSet(this.rightRootObject, "rightRoot");
 	}
 
 	protected Notifier getOriginNotifier() {
