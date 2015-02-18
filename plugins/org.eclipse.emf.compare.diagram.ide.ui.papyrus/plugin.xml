@@ -32,4 +32,11 @@
             ranking="20">
       </handler>
    </extension>
+   <extension
+         point="org.eclipse.emf.compare.ide.ui.modelResolvers">
+      <resolver
+            class="org.eclipse.emf.compare.diagram.ide.ui.papyrus.modelresolver.PapyrusModelResolver"
+            ranking="1000">
+      </resolver>
+   </extension>
 </plugin>
