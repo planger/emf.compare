@@ -24,11 +24,14 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.EMFCompare;
+import org.eclipse.emf.compare.internal.merge.MergeMode;
 import org.eclipse.emf.compare.merge.BatchMerger;
 import org.eclipse.emf.compare.merge.IBatchMerger;
 import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
+import org.eclipse.emf.compare.tests.TwoWayFuzzyTest.TwoWayMergeData;
+import org.eclipse.emf.compare.tests.util.FuzzyUtil;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -67,11 +70,14 @@ public class ThreeWayFuzzyTest {
 		protected Notifier left;
 
 		protected Notifier right;
+		
+		protected MergeMode direction;
 
-		protected ThreeWayMergeData(Notifier origin, Notifier left, Notifier right) {
+		protected ThreeWayMergeData(Notifier origin, Notifier left, Notifier right,  MergeMode direction) {
 			this.origin = origin;
 			this.left = left;
 			this.right = right;
+			this.direction = direction;
 		}
 
 	}
@@ -151,10 +157,10 @@ public class ThreeWayFuzzyTest {
 		final Notifier origin = getOriginNotifier();
 		final Notifier left = getLeftNotifier();
 		final Notifier right = getRightNotifier();
-
-//		mutateUtil.saveEObject((EObject)origin, "origin_", false);
-//		mutateUtil.saveEObject((EObject)left, "left_", false);
-//		mutateUtil.saveEObject((EObject)right, "right_", false);
+		
+		final Notifier rightOriginal = EcoreUtil.copy((EObject) right);
+		final Notifier leftOriginal = EcoreUtil.copy((EObject) left);
+		final Notifier originOriginal = EcoreUtil.copy((EObject) origin);
 
 		// perform comparison
 		final IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
@@ -177,7 +183,19 @@ public class ThreeWayFuzzyTest {
 		final Comparison assertionComparison = EMFCompare.builder().build().compare(assertionScope);
 		final EList<Diff> assertionDiffs = assertionComparison.getDifferences();
 
+		if(!assertionDiffs.isEmpty()){
+			MergeMode direction = mutateLeft ? MergeMode.LEFT_TO_RIGHT : MergeMode.RIGHT_TO_LEFT;
+			ThreeWayMergeData originalData = new ThreeWayMergeData(leftOriginal, rightOriginal, originOriginal, direction);
+			reportFailure(originalData, differences);
+		}
+		
 		assertTrue(assertionDiffs.isEmpty());
+	}
+	
+	protected void reportFailure(ThreeWayMergeData data, EList<Diff> differences) {
+		mutateUtil.saveEObject((EObject)data.left, FuzzyUtil.getDebugFileName("left", data.direction), true);
+		mutateUtil.saveEObject((EObject)data.right, FuzzyUtil.getDebugFileName("right", data.direction), true);
+		mutateUtil.saveEObject((EObject)data.right, FuzzyUtil.getDebugFileName("origin", data.direction), true);
 	}
 
 	protected void removeAllDuplicateCrossReferences(EObject contentRoot) {

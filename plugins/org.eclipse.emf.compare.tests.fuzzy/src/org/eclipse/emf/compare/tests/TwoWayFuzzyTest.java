@@ -30,6 +30,7 @@ import org.eclipse.emf.compare.merge.IBatchMerger;
 import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
+import org.eclipse.emf.compare.tests.util.FuzzyUtil;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -208,28 +209,8 @@ public class TwoWayFuzzyTest {
 	}
 
 	protected void reportFailure(TwoWayMergeData data, EList<Diff> differences) {
-		mutateUtil.saveEObject((EObject)data.left, getDebugFileName("left", data.direction), true);
-		mutateUtil.saveEObject((EObject)data.right, getDebugFileName("right", data.direction), true);
-	}
-
-	private String getDebugFileName(String fileName, MergeMode direction) {
-		final String directionString = getDirectionName(direction);
-		return directionString + "_" + fileName;
-	}
-
-	private String getDirectionName(MergeMode direction) {
-		final String directionString;
-		switch (direction) {
-			case RIGHT_TO_LEFT:
-				directionString = "r2l";
-				break;
-			case LEFT_TO_RIGHT:
-				directionString = "l2r";
-				break;
-			default:
-				directionString = "";
-		}
-		return directionString;
+		mutateUtil.saveEObject((EObject)data.left, FuzzyUtil.getDebugFileName("left", data.direction), true);
+		mutateUtil.saveEObject((EObject)data.right, FuzzyUtil.getDebugFileName("right", data.direction), true);
 	}
 
 	protected void removeAllDuplicateCrossReferences(EObject contentRoot) {
