@@ -8,6 +8,8 @@
  * Contributors:
  *     Obeo - initial API and implementation
  *     Alexandra Buzila - Bug 450360
+ *     Philip Langer - Bug 460778
+ *     Stefan Dirix - Bug 461011
  *******************************************************************************/
 package org.eclipse.emf.compare.match.eobject;
 
@@ -26,9 +28,12 @@ import java.util.Set;
 import org.eclipse.emf.common.util.BasicDiagnostic;
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.Monitor;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.CompareFactory;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.ComparisonCanceledException;
+import org.eclipse.emf.compare.EMFCompare;
+import org.eclipse.emf.compare.EMFCompareMessages;
 import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.match.eobject.EObjectIndex.Side;
 import org.eclipse.emf.ecore.EObject;
@@ -224,7 +229,7 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 				match.setLeft(left);
 
 				// Can we find a parent? Assume we're iterating in containment order
-				final EObject parentEObject = left.eContainer();
+				final EObject parentEObject = getParentEObject(left);
 				final Match parent = leftEObjectsToMatch.get(parentEObject);
 				if (parent != null) {
 					((InternalEList<Match>)parent.getSubmatches()).addUnique(match);
@@ -232,7 +237,7 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 					matches.add(match);
 				}
 				if (idToMatch.containsKey(identifier)) {
-					reportDuplicateID(Side.LEFT, identifier);
+					reportDuplicateID(Side.LEFT, left);
 				}
 				idToMatch.put(identifier, match);
 				leftEObjectsToMatch.put(left, match);
@@ -250,7 +255,7 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 				Match match = idToMatch.get(identifier);
 				if (match != null) {
 					if (match.getRight() != null) {
-						reportDuplicateID(Side.RIGHT, identifier);
+						reportDuplicateID(Side.RIGHT, right);
 					}
 					match.setRight(right);
 
@@ -261,7 +266,7 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 					match.setRight(right);
 
 					// Can we find a parent?
-					final EObject parentEObject = right.eContainer();
+					final EObject parentEObject = getParentEObject(right);
 					final Match parent = rightEObjectsToMatch.get(parentEObject);
 					if (parent != null) {
 						((InternalEList<Match>)parent.getSubmatches()).addUnique(match);
@@ -286,7 +291,7 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 				Match match = idToMatch.get(identifier);
 				if (match != null) {
 					if (match.getOrigin() != null) {
-						reportDuplicateID(Side.ORIGIN, identifier);
+						reportDuplicateID(Side.ORIGIN, origin);
 					}
 					match.setOrigin(origin);
 
@@ -297,7 +302,7 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 					match.setOrigin(origin);
 
 					// Can we find a parent?
-					final EObject parentEObject = origin.eContainer();
+					final EObject parentEObject = getParentEObject(origin);
 					final Match parent = originEObjectsToMatch.get(parentEObject);
 					if (parent != null) {
 						((InternalEList<Match>)parent.getSubmatches()).addUnique(match);
@@ -316,17 +321,65 @@ public class IdentifierEObjectMatcher implements IEObjectMatcher {
 	}
 
 	/**
+	 * This method is used to determine the parent objects during matching. The default implementation of this
+	 * method returns the eContainer of the given {@code eObject}. Can be overwritten by clients to still
+	 * allow proper matching when using a more complex architecture.
+	 * 
+	 * @param eObject
+	 *            The {@link EObject} for which the parent object is to determine.
+	 * @return The parent of the given {@code eObject}.
+	 * @since 3.2
+	 */
+	protected EObject getParentEObject(EObject eObject) {
+		return eObject.eContainer();
+	}
+
+	/**
 	 * Adds a warning diagnostic to the comparison for the duplicate ID.
 	 * 
 	 * @param side
 	 *            the side where the duplicate ID was found
-	 * @param identifier
-	 *            the ID that has a duplicate
+	 * @param eObject
+	 *            the element with the duplicate ID
 	 */
-	private void reportDuplicateID(Side side, String identifier) {
-		diagnostic.add(new BasicDiagnostic(Diagnostic.WARNING, "org.eclipse.emf.compare", 0, //$NON-NLS-1$
-				"Duplicate ID found on the " + side.name() + " side. (value = '" + identifier + "')", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
-				null));
+	private void reportDuplicateID(Side side, EObject eObject) {
+		final String duplicateID = idComputation.apply(eObject);
+		final String sideName = side.name().toLowerCase();
+		final String uriString = getUriString(eObject);
+		final String message;
+		if (uriString != null) {
+			message = EMFCompareMessages.getString("IdentifierEObjectMatcher.duplicateIdWithResource", //$NON-NLS-1$
+					duplicateID, sideName, uriString);
+		} else {
+			message = EMFCompareMessages.getString("IdentifierEObjectMatcher.duplicateId", //$NON-NLS-1$
+					duplicateID, sideName);
+		}
+		diagnostic
+				.add(new BasicDiagnostic(Diagnostic.WARNING, EMFCompare.DIAGNOSTIC_SOURCE, 0, message, null));
+	}
+
+	/**
+	 * Returns a String representation of the URI of the given {@code eObject}'s resource.
+	 * <p>
+	 * If the {@code eObject}'s resource or its URI is <code>null</code>, this method returns
+	 * <code>null</code>.
+	 * </p>
+	 * 
+	 * @param eObject
+	 * @return A String representation of the given {@code eObject}'s resource URI.
+	 */
+	private String getUriString(EObject eObject) {
+		String uriString = null;
+		final Resource resource = eObject.eResource();
+		if (resource != null && resource.getURI() != null) {
+			final URI uri = resource.getURI();
+			if (uri.isPlatform()) {
+				uriString = uri.toPlatformString(true);
+			} else {
+				uriString = uri.toString();
+			}
+		}
+		return uriString;
 	}
 
 	/**

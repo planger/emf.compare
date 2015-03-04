@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Obeo and others.
+ * Copyright (c) 2012, 2015 Obeo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,11 +7,12 @@
  * 
  * Contributors:
  *     Obeo - initial API and implementation
- *     Stefan Dirix - bug 441172
+ *     Stefan Dirix - bugs 441172, 452147, 460902 and 460923
  *******************************************************************************/
 package org.eclipse.emf.compare.tests.merge;
 
 import static com.google.common.base.Predicates.and;
+import static com.google.common.base.Predicates.instanceOf;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.added;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.addedToReference;
 import static org.eclipse.emf.compare.utils.EMFComparePredicates.changedReference;
@@ -28,9 +29,11 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.emf.common.util.BasicMonitor;
@@ -39,6 +42,7 @@ import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceSource;
 import org.eclipse.emf.compare.DifferenceState;
 import org.eclipse.emf.compare.EMFCompare;
+import org.eclipse.emf.compare.FeatureMapChange;
 import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.compare.internal.utils.ComparisonUtil;
@@ -48,9 +52,11 @@ import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.compare.tests.conflict.data.ConflictInputData;
 import org.eclipse.emf.compare.tests.equi.data.EquiInputData;
 import org.eclipse.emf.compare.tests.fullcomparison.data.identifier.IdentifierMatchInputData;
+import org.eclipse.emf.compare.tests.merge.data.TwoWayMergeInputData;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.junit.Test;
 
 @SuppressWarnings("nls")
@@ -59,6 +65,8 @@ public class MultipleMergeTest {
 	private ConflictInputData conflictInput = new ConflictInputData();
 
 	private EquiInputData equivalenceInput = new EquiInputData();
+
+	private TwoWayMergeInputData twoWayInput = new TwoWayMergeInputData();
 
 	private IMerger.Registry mergerRegistry = IMerger.RegistryImpl.createStandaloneInstance();
 
@@ -1169,6 +1177,84 @@ public class MultipleMergeTest {
 		assertEquals(0, comparison.getDifferences().size());
 	}
 
+	/**
+	 * Tests a scenario in which two nodes contain interlocked one-to-one references. The merger must handle
+	 * these cases with care since diffs can become redundant during merging.
+	 */
+	@Test
+	public void testOneToOneRefMergeL2R() throws IOException {
+		final Resource left = twoWayInput.getOneToOneMergeL2RLeft();
+		final Resource right = twoWayInput.getOneToOneRefMergeL2RRight();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+		final List<Diff> differences = comparison.getDifferences();
+
+		// differences:
+		// 1. Change c.source to c
+		// 2. Change c.destination to c
+		// 3. Change d.source to null
+		// 4. Change d.destination to null
+		// 1,4 and 2,3 are equivalent
+
+		final ReferenceChange setCSourceDiff = (ReferenceChange)Iterators.find(differences.iterator(),
+				changedReference("Root.c", "source", "Root.d", "Root.c"));
+
+		final ReferenceChange setDSourceDiff = (ReferenceChange)Iterators.find(differences.iterator(),
+				changedReference("Root.d", "source", "Root.c", null));
+
+		// By merging diff1 (setCSourceDiff) the model will be in a state where the remaining diffs
+		// describe actions which already occurred.
+		mergerRegistry.getHighestRankingMerger(setCSourceDiff).copyLeftToRight(setCSourceDiff,
+				new BasicMonitor());
+
+		// Check if the non-equivalent diff is also set to merged
+		assertEquals(DifferenceState.MERGED, setDSourceDiff.getState());
+
+		// Check if no differences between models are left
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	/**
+	 * Tests a scenario in which two nodes contain interlocked one-to-one references. The merger must handle
+	 * these cases with care since diffs can become redundant during merging.
+	 */
+	@Test
+	public void testOneToOneRefMergeR2L() throws IOException {
+		final Resource left = twoWayInput.getOneToOneMergeR2LLeft();
+		final Resource right = twoWayInput.getOneToOneRefMergeR2LRight();
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+		final List<Diff> differences = comparison.getDifferences();
+
+		// differences:
+		// 1. Change c.source to d
+		// 2. Change c.destination to d
+		// 3. Change d.source to c
+		// 4. Change d.destination to c
+		// 1,4 and 2,3 are equivalent
+
+		final ReferenceChange setCSourceDiff = (ReferenceChange)Iterators.find(differences.iterator(),
+				changedReference("Root.c", "source", "Root.c", "Root.d"));
+
+		final ReferenceChange setDSourceDiff = (ReferenceChange)Iterators.find(differences.iterator(),
+				changedReference("Root.d", "source", null, "Root.c"));
+
+		// By merging diff1 (setCSourceDiff) R2L the model will be in a state where the remaining diffs
+		// describe actions which already occurred.
+		mergerRegistry.getHighestRankingMerger(setCSourceDiff).copyRightToLeft(setCSourceDiff,
+				new BasicMonitor());
+
+		// Check if the non-equivalent diff is marked as merged
+		assertEquals(DifferenceState.MERGED, setDSourceDiff.getState());
+
+		// Check if no differences between models are left
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
 	@Test
 	public void testEquivalenceC7LtoR() throws IOException {
 		final Resource left = equivalenceInput.getC7Left();
@@ -1231,6 +1317,86 @@ public class MultipleMergeTest {
 		}
 
 		// check if no differences between models are left
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testFeatureMapDependencyL2R() throws IOException {
+		ResourceSetImpl resourceSet = new ResourceSetImpl();
+
+		final Resource left = twoWayInput.getFeatureMapDependencyL2RLeft(resourceSet);
+		final Resource right = twoWayInput.getFeatureMapDependencyL2RRight(resourceSet);
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+
+		// There should be 3 differences
+		// 1. Add first key (ReferenceChange)
+		// 2. Add first key (FeatureMapChange)
+		// 3. Add NodeFeatureMapContainment (ReferenceChange)
+		assertEquals(3, comparison.getDifferences().size());
+
+		FeatureMapChange addFirstKey = (FeatureMapChange)Iterators.find(differences.iterator(),
+				instanceOf(FeatureMapChange.class));
+		assertNotNull(addFirstKey);
+
+		// Execute FeatureMapChange to test if it properly resolves its dependencies
+		mergerRegistry.getHighestRankingMerger(addFirstKey).copyLeftToRight(addFirstKey, new BasicMonitor());
+
+		// Execute the remaining differences
+		for (Diff diff : differences) {
+			if (diff != addFirstKey) {
+				mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
+			}
+		}
+
+		// Check if no differences are left
+		comparison = EMFCompare.builder().build().compare(scope);
+		assertEquals(0, comparison.getDifferences().size());
+	}
+
+	@Test
+	public void testRemoveFeatureMapR2L() throws IOException {
+		ResourceSetImpl resourceSet = new ResourceSetImpl();
+
+		final Resource left = twoWayInput.getRemoveFeatureMapR2LLeft(resourceSet);
+		final Resource right = twoWayInput.getRemoveFeatureMapR2LRight(resourceSet);
+
+		final IComparisonScope scope = new DefaultComparisonScope(left, right, null);
+		Comparison comparison = EMFCompare.builder().build().compare(scope);
+
+		final List<Diff> differences = comparison.getDifferences();
+
+		// There should be 5 differences
+		// 1. Remove first key (ReferenceChange)
+		// 2. Remove first key (FeatureMapChange)
+		// 3. Remove second key (ReferenceChange)
+		// 4. Remove second key (FeatureMapChange)
+		// 5. Remove NodeFeatureMapContainment (ReferenceChange)
+		assertEquals(5, comparison.getDifferences().size());
+
+		// Also test dependencies by merging the FeatureMapChanges first
+		Iterator<Diff> featureMapChangesIt = Iterators.filter(differences.iterator(),
+				instanceOf(FeatureMapChange.class));
+		List<Diff> featureMapChanges = Lists.newArrayList(featureMapChangesIt);
+		assertEquals(2, featureMapChanges.size());
+
+		// Execute FeatureMapChanges first to test if they properly resolve their dependencies
+		for (Diff diff : featureMapChanges) {
+			mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+		}
+
+		// Execute the remaining differences
+		for (Diff diff : differences) {
+			if (!featureMapChanges.contains(diff)) {
+				mergerRegistry.getHighestRankingMerger(diff).copyRightToLeft(diff, new BasicMonitor());
+			}
+		}
+
+		// Check if no differences are left
 		comparison = EMFCompare.builder().build().compare(scope);
 		assertEquals(0, comparison.getDifferences().size());
 	}
